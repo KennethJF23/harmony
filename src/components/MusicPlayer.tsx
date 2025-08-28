@@ -129,7 +129,7 @@ const MusicPlayer = () => {
             </span>
           </h2>
           <p className="text-xl text-[var(--foreground)]/80 max-w-2xl mx-auto">
-            Experience scientifically-designed frequencies tailored for different mental states
+            Experience scientifically designed frequencies tailored for different mental states
           </p>
         </motion.div>
 
