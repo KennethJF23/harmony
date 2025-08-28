@@ -8,6 +8,8 @@ interface Track {
   title: string;
   frequency: string;
   duration: string;
+  durationSeconds: number;
+  audioUrl: string;
   benefits: string[];
   category: 'focus' | 'relaxation' | 'creativity' | 'sleep';
 }
@@ -16,9 +18,15 @@ const MusicPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(75);
   const [showPlaylist, setShowPlaylist] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
+  const volumeRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const demoIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const tracks: Track[] = [
     {
@@ -26,6 +34,8 @@ const MusicPlayer = () => {
       title: "Deep Focus Alpha",
       frequency: "8-12 Hz",
       duration: "3:45",
+      durationSeconds: 225,
+      audioUrl: "/audio/focus-alpha.mp3", // Placeholder - you'll need actual audio files
       benefits: ["Enhanced concentration", "Mental clarity", "Reduced distractions"],
       category: "focus"
     },
@@ -34,6 +44,8 @@ const MusicPlayer = () => {
       title: "Theta Meditation",
       frequency: "4-8 Hz",
       duration: "5:20",
+      durationSeconds: 320,
+      audioUrl: "/audio/theta-meditation.mp3",
       benefits: ["Deep relaxation", "Stress relief", "Mindfulness"],
       category: "relaxation"
     },
@@ -42,6 +54,8 @@ const MusicPlayer = () => {
       title: "Creative Flow Beta",
       frequency: "13-30 Hz",
       duration: "4:15",
+      durationSeconds: 255,
+      audioUrl: "/audio/creative-beta.mp3",
       benefits: ["Creative thinking", "Problem solving", "Innovation"],
       category: "creativity"
     },
@@ -50,6 +64,8 @@ const MusicPlayer = () => {
       title: "Delta Sleep Wave",
       frequency: "0.5-4 Hz",
       duration: "8:00",
+      durationSeconds: 480,
+      audioUrl: "/audio/delta-sleep.mp3",
       benefits: ["Deep sleep", "Recovery", "Healing"],
       category: "sleep"
     }
@@ -63,38 +79,158 @@ const MusicPlayer = () => {
   };
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 100) {
-            setIsPlaying(false);
-            return 0;
-          }
-          return prev + 0.5;
-        });
-      }, 100);
-    }
-    return () => clearInterval(interval);
-  }, [isPlaying]);
+    const audio = audioRef.current;
+    if (!audio) return;
 
-  const togglePlay = () => {
-    setIsPlaying(!isPlaying);
+    const updateProgress = () => {
+      if (audio.duration) {
+        const progressPercent = (audio.currentTime / audio.duration) * 100;
+        setProgress(progressPercent);
+        setCurrentTime(audio.currentTime);
+      }
+    };
+
+    const handleLoadStart = () => setIsLoading(true);
+    const handleCanPlay = () => setIsLoading(false);
+    const handleError = () => {
+      setIsLoading(false);
+      setIsPlaying(false);
+      setIsDemoMode(true);
+      console.log('Audio file not found. Using demo mode.');
+      // Fallback to demo mode when audio files are not available
+    };
+    const handleEnded = () => {
+      setIsPlaying(false);
+      // Auto-play next track
+      nextTrack();
+    };
+
+    audio.addEventListener('timeupdate', updateProgress);
+    audio.addEventListener('loadstart', handleLoadStart);
+    audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      if (demoIntervalRef.current) {
+        clearInterval(demoIntervalRef.current);
+      }
+      audio.removeEventListener('timeupdate', updateProgress);
+      audio.removeEventListener('loadstart', handleLoadStart);
+      audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, [currentTrack]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.volume = volume / 100;
+  }, [volume]);
+
+  const togglePlay = async () => {
+    const audio = audioRef.current;
+    
+    if (isDemoMode) {
+      // Demo mode - simulate playback
+      if (isPlaying) {
+        if (demoIntervalRef.current) {
+          clearInterval(demoIntervalRef.current);
+          demoIntervalRef.current = null;
+        }
+        setIsPlaying(false);
+      } else {
+        setIsPlaying(true);
+        // Simulate progress in demo mode
+        demoIntervalRef.current = setInterval(() => {
+          setCurrentTime(prev => {
+            const newTime = prev + 1;
+            if (newTime >= currentTrackData.durationSeconds) {
+              setIsPlaying(false);
+              setCurrentTime(0);
+              setProgress(0);
+              nextTrack();
+              return 0;
+            }
+            setProgress((newTime / currentTrackData.durationSeconds) * 100);
+            return newTime;
+          });
+        }, 1000);
+      }
+      return;
+    }
+    
+    if (!audio) return;
+
+    try {
+      if (isPlaying) {
+        audio.pause();
+        setIsPlaying(false);
+      } else {
+        await audio.play();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      setIsPlaying(false);
+      setIsDemoMode(true);
+    }
   };
 
   const nextTrack = () => {
+    if (demoIntervalRef.current) {
+      clearInterval(demoIntervalRef.current);
+      demoIntervalRef.current = null;
+    }
+    
+    const audio = audioRef.current;
+    if (audio && !isDemoMode) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    
     setCurrentTrack((prev) => (prev + 1) % tracks.length);
     setProgress(0);
+    setCurrentTime(0);
+    setIsPlaying(false);
   };
 
   const previousTrack = () => {
+    if (demoIntervalRef.current) {
+      clearInterval(demoIntervalRef.current);
+      demoIntervalRef.current = null;
+    }
+    
+    const audio = audioRef.current;
+    if (audio && !isDemoMode) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    
     setCurrentTrack((prev) => (prev - 1 + tracks.length) % tracks.length);
     setProgress(0);
+    setCurrentTime(0);
+    setIsPlaying(false);
   };
 
   const selectTrack = (index: number) => {
+    if (demoIntervalRef.current) {
+      clearInterval(demoIntervalRef.current);
+      demoIntervalRef.current = null;
+    }
+    
+    const audio = audioRef.current;
+    if (audio && !isDemoMode) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    
     setCurrentTrack(index);
     setProgress(0);
+    setCurrentTime(0);
+    setIsPlaying(false);
     setShowPlaylist(false);
   };
 
@@ -103,14 +239,45 @@ const MusicPlayer = () => {
       const rect = progressRef.current.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const newProgress = (clickX / rect.width) * 100;
-      setProgress(Math.max(0, Math.min(100, newProgress)));
+      const newTime = (newProgress / 100) * currentTrackData.durationSeconds;
+      
+      if (isDemoMode) {
+        setProgress(newProgress);
+        setCurrentTime(newTime);
+      } else if (audioRef.current) {
+        audioRef.current.currentTime = newTime;
+        setProgress(newProgress);
+        setCurrentTime(newTime);
+      }
     }
+  };
+
+  const handleVolumeClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (volumeRef.current) {
+      const rect = volumeRef.current.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const newVolume = Math.max(0, Math.min(100, (clickX / rect.width) * 100));
+      setVolume(newVolume);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const currentTrackData = tracks[currentTrack];
 
   return (
     <section id="music" className="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Hidden Audio Element */}
+      <audio
+        ref={audioRef}
+        src={currentTrackData.audioUrl}
+        preload="metadata"
+      />
+      
       {/* Background */}
       <div className="absolute inset-0 neural-bg opacity-50"></div>
       
@@ -129,7 +296,7 @@ const MusicPlayer = () => {
             </span>
           </h2>
           <p className="text-xl text-[var(--foreground)]/80 max-w-2xl mx-auto">
-            Experience scientifically-designed frequencies tailored for different mental states
+            Experience scientifically designed frequencies tailored for different mental states
           </p>
         </motion.div>
 
@@ -161,6 +328,11 @@ const MusicPlayer = () => {
                 <span className={`px-3 py-1 bg-gradient-to-r ${categoryColors[currentTrackData.category]}/20 rounded-full capitalize`}>
                   {currentTrackData.category}
                 </span>
+                {isDemoMode && (
+                  <span className="px-3 py-1 bg-gradient-to-r from-[var(--neural)]/20 to-[var(--glow)]/20 rounded-full border border-[var(--neural)]/30 text-[var(--neural)]">
+                    Demo Mode
+                  </span>
+                )}
               </div>
             </div>
             
@@ -272,7 +444,7 @@ const MusicPlayer = () => {
               />
             </div>
             <div className="flex justify-between text-sm text-[var(--foreground)]/60 mt-2">
-              <span>{Math.floor((progress / 100) * 225)}:{Math.floor(((progress / 100) * 225) % 60).toString().padStart(2, '0')}</span>
+              <span>{formatTime(currentTime)}</span>
               <span>{currentTrackData.duration}</span>
             </div>
           </div>
@@ -291,18 +463,29 @@ const MusicPlayer = () => {
             </motion.button>
 
             <motion.button
-              className="p-4 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full shadow-lg hover:shadow-xl transition-shadow"
+              className="p-4 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full shadow-lg hover:shadow-xl transition-shadow relative"
               onClick={togglePlay}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              disabled={isLoading}
             >
-              {isPlaying ? (
+              {isLoading ? (
+                <motion.div
+                  className="w-8 h-8"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                >
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </motion.div>
+              ) : isPlaying ? (
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6" />
                 </svg>
               ) : (
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15" />
+                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
                 </svg>
               )}
             </motion.button>
@@ -321,16 +504,44 @@ const MusicPlayer = () => {
 
           {/* Volume Control */}
           <div className="flex items-center space-x-4">
-            <svg className="w-5 h-5 text-[var(--foreground)]/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 16.414V7.586L7.707 4.293A1 1 0 006 5v14a1 1 0 001.707.707L11 16.414z" />
-            </svg>
-            <div className="flex-1 h-2 bg-[var(--background)]/50 rounded-full">
-              <div 
+            <motion.button
+              onClick={() => setVolume(volume > 0 ? 0 : 75)}
+              className="text-[var(--foreground)]/60 hover:text-[var(--primary)] transition-colors"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              {volume === 0 ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                </svg>
+              ) : volume < 50 ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M6.586 6.586C5.734 7.438 5.734 8.822 6.586 9.674l4.121 4.121C11.438 14.527 12.822 14.527 13.674 13.674l4.121-4.121C18.527 8.822 18.527 7.438 17.674 6.586L13.674 2.586C12.822 1.734 11.438 1.734 10.586 2.586L6.586 6.586z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 16.414V7.586L7.707 4.293A1 1 0 006 5v14a1 1 0 001.707.707L11 16.414z" />
+                </svg>
+              )}
+            </motion.button>
+            <div 
+              ref={volumeRef}
+              className="flex-1 h-2 bg-[var(--background)]/50 rounded-full cursor-pointer relative"
+              onClick={handleVolumeClick}
+            >
+              <motion.div 
                 className="h-full bg-gradient-to-r from-[var(--wave)] to-[var(--accent)] rounded-full"
                 style={{ width: `${volume}%` }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              />
+              <motion.div
+                className="absolute top-1/2 w-3 h-3 bg-white rounded-full shadow-lg transform -translate-y-1/2"
+                style={{ left: `calc(${volume}% - 6px)` }}
+                whileHover={{ scale: 1.2 }}
               />
             </div>
-            <span className="text-sm text-[var(--foreground)]/60 w-8">{volume}</span>
+            <span className="text-sm text-[var(--foreground)]/60 w-8">{Math.round(volume)}</span>
           </div>
         </motion.div>
 
