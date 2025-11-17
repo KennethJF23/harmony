@@ -242,7 +242,6 @@ export class AudioEngine {
    */
   public getFrequencyData(): Uint8Array {
     if (this.analyser && this.frequencyDataArray.length > 0) {
-      // @ts-ignore - TypeScript strict type checking issue with Uint8Array
       this.analyser.getByteFrequencyData(this.frequencyDataArray);
       return this.frequencyDataArray;
     }

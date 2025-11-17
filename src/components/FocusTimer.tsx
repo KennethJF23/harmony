@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 
 interface FocusTimerProps {
@@ -24,8 +24,6 @@ const presets: TimerPreset[] = [
 
 const FocusTimer = ({ onTimerComplete, onTimerStart, onTimerStop }: FocusTimerProps) => {
   const [selectedPreset, setSelectedPreset] = useState<TimerPreset>(presets[0]);
-  const [customFocus, setCustomFocus] = useState(25);
-  const [customBreak, setCustomBreak] = useState(5);
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [isBreak, setIsBreak] = useState(false);

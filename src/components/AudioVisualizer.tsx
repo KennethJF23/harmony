@@ -189,7 +189,7 @@ const AudioVisualizer = ({ audioEngine, isPlaying, category, mode = 'bars', onMo
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [audioEngine, isPlaying, category]);
+  }, [audioEngine, isPlaying, category, mode]);
 
   return (
     <motion.div

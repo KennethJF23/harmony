@@ -65,10 +65,6 @@ const FocusTimer = memo(({ onTimerStart, onTimerComplete, onTimerStop }: FocusTi
     setIsRunning(false);
   }, []);
 
-  const resumeTimer = useCallback(() => {
-    setIsRunning(true);
-  }, []);
-
   useEffect(() => {
     if (!isRunning) return;
 

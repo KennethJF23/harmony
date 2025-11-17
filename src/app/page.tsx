@@ -18,10 +18,6 @@ import ScrollToTop from '@/components/ScrollToTop';
 export default function Home() {
   return (
     <div className="min-h-screen">
-      {/* Version indicator for cache verification */}
-      <div className="fixed top-2 left-2 z-50 text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">
-        v2.0.{Date.now() % 1000}
-      </div>
       <Header />
       <main>
         <HeroSection />
