@@ -1,74 +1,123 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import {
+  generateAdaptiveResponse,
+  generateConfidence,
+  getCategoryColor,
+  getCategoryIcon,
+  type AdaptiveResponse,
+} from '@/utils/adaptiveResponseGenerator';
 
 interface AIAssistantProps {
   onRecommendation?: (trackIndex: number) => void;
+  autoOpen?: boolean; // For demo mode auto-open
 }
 
-const AIAssistant = ({}: AIAssistantProps) => {
+interface AIMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: Date;
+  confidence?: number; // 0-100
+  confidenceStages?: number[]; // For animated confidence
+  recommendedTrack?: string;
+  frequency?: string;
+  duration?: string;
+  scientific?: string;
+  category?: 'focus' | 'sleep' | 'relaxation' | 'creativity' | 'energy';
+  reasoning?: string[];
+}
+
+const AIAssistant = ({ autoOpen = false }: AIAssistantProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Array<{id: string; role: string; content: string; createdAt: Date}>>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: "Hi! I'm your Harmony AI assistant. 🎵\n\nI can help you choose the perfect binaural beats for:\n\n🎯 Focus & Concentration\n😴 Better Sleep\n🧘 Stress Relief & Relaxation\n🎨 Creativity & Flow\n⚡ Energy & Alertness\n\nWhat would you like help with today?",
-      createdAt: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<AIMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [animatingConfidence, setAnimatingConfidence] = useState<string | null>(null);
+  const [currentConfidence, setCurrentConfidence] = useState<{ [key: string]: number }>({});
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasInitialized = useRef(false);
 
-  const knowledgeBase = {
-    focus: "For optimal focus and concentration, I recommend:\n\n🎯 Deep Focus Alpha (8-12 Hz): Best for sustained attention and learning. This frequency range helps you maintain alertness while staying calm.\n\n⚡ Beta Waves (14-30 Hz): Perfect for active thinking, problem-solving, and mental clarity during work sessions.\n\n💡 Try the 'Deep Focus Alpha' track for 25-50 minute sessions with short breaks.",
+  // Initialize with greeting
+  useEffect(() => {
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      const greeting = "Hi! I'm your Harmony AI assistant. 🎵\n\nI can help you choose the perfect binaural beats for:\n\n🎯 Focus & Concentration\n😴 Better Sleep\n🧘 Stress Relief & Relaxation\n🎨 Creativity & Flow\n⚡ Energy & Alertness\n\nWhat would you like help with today?";
+      
+      setMessages([
+        {
+          id: '1',
+          role: 'assistant',
+          content: greeting,
+          createdAt: new Date(),
+        },
+      ]);
+    }
+  }, []);
+
+  // Auto-scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
+
+  // Animate confidence badge through stages
+  const animateConfidenceBadge = (messageId: string, stages: number[]) => {
+    // Stage 1: Initial confidence
+    setCurrentConfidence(prev => ({ ...prev, [messageId]: stages[0] }));
     
-    sleep: "For better sleep quality, use:\n\n🌙 Delta Waves (0.5-4 Hz): The deepest sleep frequency. Promotes restorative rest and physical healing.\n\n😴 Theta Waves (4-8 Hz): Great for falling asleep and entering light sleep stages. Reduces anxiety and mental chatter.\n\n🎵 Start with 'Deep Sleep Delta' 30 minutes before bed. Let it continue playing as you fall asleep.",
+    // Stage 2: Mid-building
+    setTimeout(() => {
+      setCurrentConfidence(prev => ({ ...prev, [messageId]: stages[1] }));
+    }, 200);
     
-    stress: "To reduce stress and anxiety:\n\n🧘 Alpha Waves (8-12 Hz): Creates a calm, relaxed yet alert state. Perfect for meditation and stress relief.\n\n💆 Theta Waves (4-8 Hz): Deep relaxation, reduces mental tension, and promotes emotional healing.\n\n🎶 Use 'Relaxation Theta' during breaks or after stressful activities for 15-20 minutes.",
-    
-    creativity: "To boost creativity:\n\n🎨 Theta Waves (4-8 Hz): The creative frequency! Enhances imagination, intuition, and artistic thinking.\n\n✨ Alpha-Theta Border (7-8 Hz): The 'flow state' where ideas flow naturally and creative insights emerge.\n\n🎭 Try 'Creative Surge Theta' when brainstorming or working on creative projects.",
-    
-    meditation: "For meditation practice:\n\n🧘 Alpha Waves (8-12 Hz): Ideal for mindful meditation, present-moment awareness.\n\n🙏 Theta Waves (4-8 Hz): Deep meditative states, spiritual connection, and inner peace.\n\n🌟 Use 'Relaxation Theta' for meditation sessions of 20+ minutes.",
-    
-    energy: "To boost energy and alertness:\n\n⚡ Beta Waves (15-30 Hz): Increases alertness, motivation, and mental energy.\n\n☕ Low Gamma (30-40 Hz): Peak focus and cognitive performance.\n\n💪 Try 'Deep Focus Alpha' or any Beta wave track for an energy boost without caffeine!",
-    
-    general: "Welcome to Harmony! 🎵\n\nI can help you choose the right binaural beats for your goals:\n\n🎯 Focus & Concentration → Alpha/Beta waves\n😴 Sleep & Rest → Delta/Theta waves\n🧘 Relaxation & Meditation → Alpha/Theta waves\n🎨 Creativity & Flow → Theta waves\n⚡ Energy & Alertness → Beta waves\n\nOur tracks use scientifically-proven frequencies that influence your brainwave patterns. Just choose your goal and let the sound guide your mind!\n\nWhat would you like help with today?"
+    // Stage 3: Final confidence
+    setTimeout(() => {
+      setCurrentConfidence(prev => ({ ...prev, [messageId]: stages[2] }));
+      setTimeout(() => {
+        setAnimatingConfidence(null);
+      }, 300);
+    }, 400);
   };
 
-  const getResponse = (userInput: string): string => {
-    const input = userInput.toLowerCase();
+  // Adaptive AI response with ML-like features
+  const getAdaptiveAIResponse = (userInput: string): AIMessage => {
+    const response: AdaptiveResponse = generateAdaptiveResponse(userInput);
+    const baseId = (Date.now() + 1).toString();
     
-    if (input.includes('focus') || input.includes('concentrate') || input.includes('work') || input.includes('study')) {
-      return knowledgeBase.focus;
-    }
-    if (input.includes('sleep') || input.includes('rest') || input.includes('insomnia') || input.includes('tired')) {
-      return knowledgeBase.sleep;
-    }
-    if (input.includes('stress') || input.includes('anxiety') || input.includes('calm') || input.includes('relax')) {
-      return knowledgeBase.stress;
-    }
-    if (input.includes('creat') || input.includes('idea') || input.includes('inspiration') || input.includes('imagination')) {
-      return knowledgeBase.creativity;
-    }
-    if (input.includes('meditat') || input.includes('mindful') || input.includes('zen')) {
-      return knowledgeBase.meditation;
-    }
-    if (input.includes('energy') || input.includes('alert') || input.includes('wake') || input.includes('active')) {
-      return knowledgeBase.energy;
-    }
-    if (input.includes('how') || input.includes('what') || input.includes('work') || input.includes('help') || input.includes('?')) {
-      return knowledgeBase.general;
-    }
-    
-    return knowledgeBase.general;
+    // Generate confidence stages for animation
+    const confidenceStages = generateConfidence(response.confidence, {
+      persona: 'User',
+      timeOfDay: new Date().getHours() >= 5 && new Date().getHours() < 12 ? 'morning' :
+                 new Date().getHours() >= 12 && new Date().getHours() < 17 ? 'afternoon' :
+                 new Date().getHours() >= 17 && new Date().getHours() < 21 ? 'evening' : 'night',
+      previousQueries: [],
+      sessionCount: 0,
+    });
+
+    return {
+      id: baseId,
+      role: 'assistant',
+      content: response.content,
+      createdAt: new Date(),
+      confidence: response.confidence,
+      confidenceStages,
+      recommendedTrack: response.recommendedTrack,
+      frequency: response.frequency,
+      duration: response.duration,
+      scientific: response.scientific,
+      category: response.category,
+      reasoning: response.reasoning,
+    };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const userMessage = {
+    const userMessage: AIMessage = {
       id: Date.now().toString(),
       role: 'user',
       content: input,
@@ -79,19 +128,24 @@ const AIAssistant = ({}: AIAssistantProps) => {
     const userInput = input;
     setInput('');
     setIsLoading(true);
+    setIsTyping(true);
 
+    // Realistic typing delay (0.8-1.5 seconds)
+    const typingDelay = 800 + Math.random() * 700;
+    
     setTimeout(() => {
-      const aiResponse = getResponse(userInput);
-      const aiMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: aiResponse,
-        createdAt: new Date(),
-      };
+      setIsTyping(false);
+      const aiResponse = getAdaptiveAIResponse(userInput);
+      setMessages(prev => [...prev, aiResponse]);
       
-      setMessages(prev => [...prev, aiMessage]);
+      // Animate confidence badge if present
+      if (aiResponse.confidence && aiResponse.confidenceStages) {
+        setAnimatingConfidence(aiResponse.id);
+        animateConfidenceBadge(aiResponse.id, aiResponse.confidenceStages);
+      }
+      
       setIsLoading(false);
-    }, 500);
+    }, typingDelay);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,7 +162,7 @@ const AIAssistant = ({}: AIAssistantProps) => {
   const handleQuickPrompt = (prompt: string) => {
     if (isLoading) return;
 
-    const userMessage = {
+    const userMessage: AIMessage = {
       id: Date.now().toString(),
       role: 'user',
       content: prompt,
@@ -118,32 +172,37 @@ const AIAssistant = ({}: AIAssistantProps) => {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    setIsTyping(true);
 
+    // Realistic typing delay
+    const typingDelay = 800 + Math.random() * 700;
+    
     setTimeout(() => {
-      const aiResponse = getResponse(prompt);
-      const aiMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: aiResponse,
-        createdAt: new Date(),
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
+      setIsTyping(false);
+      const aiResponse = getAdaptiveAIResponse(prompt);
+      setMessages(prev => [...prev, aiResponse]);
+      
+      // Animate confidence badge if present
+      if (aiResponse.confidence && aiResponse.confidenceStages) {
+        setAnimatingConfidence(aiResponse.id);
+        animateConfidenceBadge(aiResponse.id, aiResponse.confidenceStages);
+      }
+      
       setIsLoading(false);
-    }, 500);
+    }, typingDelay);
   };
 
   return (
     <>
-      {/* Floating Button - MIDDLE POSITION (bottom-21) */}
+      {/* Floating Button - AI Assistant */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-21 right-8 w-12 h-12 bg-gradient-to-r from-[#7aa2f7] to-[#bb9af7] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-40 group"
+        className="fixed bottom-20 right-8 w-12 h-12 bg-gradient-to-r from-[#7aa2f7] to-[#bb9af7] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-[80] group"
+        initial={{ opacity: 1, scale: 1 }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.3 }}
+        aria-label="Open AI chat assistant"
+        title="AI Assistant"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           {isOpen ? (
@@ -163,11 +222,14 @@ const AIAssistant = ({}: AIAssistantProps) => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed bottom-[140px] right-8 z-50 w-96 max-w-[calc(100vw-4rem)] h-[500px] max-h-[calc(100vh-10rem)]"
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            transition={{ duration: 0.3 }}
+            className="fixed bottom-[140px] right-8 z-[10000] w-96 max-w-[calc(100vw-4rem)] h-[500px] max-h-[calc(100vh-10rem)]"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ 
+              duration: 0.2,
+              ease: "easeOut"
+            }}
           >
             <div className="bg-[#1a1f35]/95 backdrop-blur-2xl rounded-3xl border border-[#7aa2f7]/20 shadow-2xl h-full flex flex-col overflow-hidden">
               {/* Header */}
@@ -196,8 +258,8 @@ const AIAssistant = ({}: AIAssistantProps) => {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {messages.map((message: {id: string; role: string; content: string; createdAt: Date}, index: number) => (
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 scroll-smooth">
+                {messages.map((message, index: number) => (
                   <motion.div
                     key={message.id}
                     className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -206,13 +268,124 @@ const AIAssistant = ({}: AIAssistantProps) => {
                     transition={{ duration: 0.3, delay: index * 0.05 }}
                   >
                     <div
-                      className={`max-w-[80%] p-4 rounded-2xl backdrop-blur-sm ${
+                      className={`max-w-[85%] p-4 rounded-2xl backdrop-blur-sm transition-all ${
                         message.role === 'user'
                           ? 'bg-gradient-to-r from-[#7aa2f7] to-[#bb9af7] text-white shadow-lg'
+                          : message.category
+                          ? `bg-gradient-to-br ${getCategoryColor(message.category)}/10 text-white border border-${message.category === 'focus' ? '[#7aa2f7]' : message.category === 'sleep' ? 'purple-500' : message.category === 'relaxation' ? 'green-500' : message.category === 'creativity' ? 'yellow-500' : 'red-500'}/30`
                           : 'bg-[#1a1f35]/80 text-white border border-[#7aa2f7]/20'
                       }`}
                     >
+                      {/* Confidence Badge for AI messages with animation */}
+                      {message.role === 'assistant' && message.confidence && (
+                        <motion.div 
+                          className="flex flex-wrap items-center gap-2 mb-3"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          <motion.div 
+                            className={`px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1 relative ${
+                              (currentConfidence[message.id] || message.confidence) >= 85 ? 'bg-green-500/20 text-green-400 shadow-lg shadow-green-500/20' :
+                              (currentConfidence[message.id] || message.confidence) >= 70 ? 'bg-blue-500/20 text-blue-400 shadow-lg shadow-blue-500/20' :
+                              'bg-yellow-500/20 text-yellow-400 shadow-lg shadow-yellow-500/20'
+                            }`}
+                            animate={{
+                              scale: animatingConfidence === message.id ? [1, 1.08, 1] : 1,
+                            }}
+                            transition={{ duration: 0.5 }}
+                            whileHover={{ scale: 1.05, rotate: [0, -2, 2, 0] }}
+                          >
+                            {/* Shimmer effect for adaptive AI */}
+                            {animatingConfidence === message.id && (
+                              <motion.div
+                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-full"
+                                initial={{ x: '-100%' }}
+                                animate={{ x: '200%' }}
+                                transition={{ duration: 1, repeat: 2 }}
+                              />
+                            )}
+                            <motion.svg 
+                              className="w-3 h-3" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                              animate={animatingConfidence === message.id ? { rotate: 360 } : {}}
+                              transition={{ duration: 0.5 }}
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </motion.svg>
+                            <span>{currentConfidence[message.id] || message.confidence}% Confidence</span>
+                          </motion.div>
+                          
+                          {/* Category icon with pulse */}
+                          {message.category && message.recommendedTrack && (
+                            <>
+                              <motion.div 
+                                className="px-2 py-1 bg-[#7aa2f7]/20 text-[#7aa2f7] rounded-full text-xs font-medium flex items-center space-x-1"
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.4, type: 'spring', stiffness: 200 }}
+                              >
+                                <motion.span
+                                  animate={{ scale: [1, 1.2, 1] }}
+                                  transition={{ duration: 1, repeat: 2, delay: 0.6 }}
+                                >
+                                  {getCategoryIcon(message.category)}
+                                </motion.span>
+                                <span>{message.recommendedTrack}</span>
+                              </motion.div>
+                            </>
+                          )}
+                        </motion.div>
+                      )}
+                      
+                      {/* AI Reasoning (transparency) */}
+                      {message.role === 'assistant' && message.reasoning && message.reasoning.length > 0 && (
+                        <motion.div 
+                          className="mb-3 flex flex-wrap gap-1.5"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.5 }}
+                        >
+                          {message.reasoning.map((reason, idx) => (
+                            <motion.span
+                              key={idx}
+                              className="text-[10px] px-2 py-0.5 bg-[#7aa2f7]/10 text-[#7aa2f7] rounded-full border border-[#7aa2f7]/20"
+                              initial={{ opacity: 0, y: -5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.6 + idx * 0.1 }}
+                            >
+                              {reason}
+                            </motion.span>
+                          ))}
+                        </motion.div>
+                      )}
+                      
                       <p className="text-sm whitespace-pre-line leading-relaxed">{message.content}</p>
+                      
+                      {/* Scientific metadata */}
+                      {message.role === 'assistant' && (message.frequency || message.duration) && (
+                        <div className="mt-3 pt-3 border-t border-[#7aa2f7]/10 space-y-1">
+                          {message.frequency && (
+                            <div className="flex items-center space-x-2 text-xs text-gray-400">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                              </svg>
+                              <span>{message.frequency}</span>
+                            </div>
+                          )}
+                          {message.duration && (
+                            <div className="flex items-center space-x-2 text-xs text-gray-400">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>{message.duration}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
                       <p className="text-xs mt-2 opacity-60">
                         {new Date(message.createdAt || Date.now()).toLocaleTimeString([], {
                           hour: '2-digit',
@@ -223,26 +396,40 @@ const AIAssistant = ({}: AIAssistantProps) => {
                   </motion.div>
                 ))}
 
-                {isLoading && (
+                {isTyping && (
                   <motion.div
                     className="flex justify-start"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
                   >
-                    <div className="bg-[#1a1f35]/80 p-4 rounded-2xl border border-[#7aa2f7]/20">
-                      <div className="flex space-x-2">
-                        {[0, 1, 2].map((i) => (
-                          <motion.div
-                            key={i}
-                            className="w-2 h-2 bg-[#7aa2f7] rounded-full"
-                            animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
-                            transition={{ repeat: Infinity, duration: 1, delay: i * 0.2 }}
-                          />
-                        ))}
+                    <div className="bg-[#1a1f35]/80 p-4 rounded-2xl border border-[#7aa2f7]/20 backdrop-blur-sm">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex space-x-1.5">
+                          {[0, 1, 2].map((i) => (
+                            <motion.div
+                              key={i}
+                              className="w-2.5 h-2.5 bg-[#7aa2f7] rounded-full shadow-lg shadow-[#7aa2f7]/50"
+                              animate={{ 
+                                scale: [1, 1.4, 1], 
+                                opacity: [0.4, 1, 0.4],
+                                y: [0, -4, 0]
+                              }}
+                              transition={{ 
+                                repeat: Infinity, 
+                                duration: 0.9, 
+                                delay: i * 0.15,
+                                ease: "easeInOut"
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs text-gray-400">AI is thinking...</span>
                       </div>
                     </div>
                   </motion.div>
                 )}
+                <div ref={messagesEndRef} />
               </div>
 
               {/* Quick Prompts */}

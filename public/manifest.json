@@ -1,12 +1,14 @@
 {
-  "name": "Harmony - Binaural Beats",
-  "short_name": "Harmony",
-  "description": "Free binaural beat generator for focus and relaxation",
+  "name": "Brain Harmonics - AI-Powered Binaural Beats",
+  "short_name": "Brain Harmonics",
+  "description": "AI-powered binaural beat generator with personalized recommendations, mood tracking, and achievement system for enhanced focus and relaxation",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0e1a",
   "theme_color": "#5b9eff",
-  "orientation": "portrait",
+  "orientation": "any",
+  "dir": "ltr",
+  "lang": "en-US",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -21,7 +23,23 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["health", "music", "lifestyle", "productivity"],
+  "categories": ["health", "music", "lifestyle", "productivity", "wellness"],
+  "shortcuts": [
+    {
+      "name": "Start Focus Session",
+      "short_name": "Focus",
+      "description": "Start a deep focus session",
+      "url": "/?mode=focus",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "View Stats",
+      "short_name": "Stats",
+      "description": "View your progress and achievements",
+      "url": "/?view=stats",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
   "screenshots": [
     {
       "src": "/screenshot-mobile.png",
@@ -35,5 +53,19 @@
       "type": "image/png",
       "form_factor": "wide"
     }
-  ]
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "scope": "/",
+  "iarc_rating_id": "",
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }

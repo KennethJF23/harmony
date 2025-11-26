@@ -18,8 +18,13 @@ import ScrollToTop from '@/components/ScrollToTop';
 export default function Home() {
   return (
     <div className="min-h-screen">
+      {/* Skip to main content */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      
       <Header />
-      <main>
+      <main id="main-content">
         <HeroSection />
         
         {/* Personal Mode Section */}

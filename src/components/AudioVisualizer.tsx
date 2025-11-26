@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import { motion } from 'framer-motion';
 import { AudioEngine } from '@/utils/audioEngine';
 
@@ -19,7 +19,7 @@ const categoryColors = {
   sleep: { primary: '#bb9af7', secondary: '#7aa2f7', glow: 'rgba(187, 154, 247, 0.5)' }
 };
 
-const AudioVisualizer = ({ audioEngine, isPlaying, category, mode = 'bars' }: AudioVisualizerProps) => {
+const AudioVisualizer = memo(({ audioEngine, isPlaying, category, mode = 'bars' }: AudioVisualizerProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | undefined>(undefined);
 
@@ -221,6 +221,8 @@ const AudioVisualizer = ({ audioEngine, isPlaying, category, mode = 'bars' }: Au
       )}
     </motion.div>
   );
-};
+});
+
+AudioVisualizer.displayName = 'AudioVisualizer';
 
 export default AudioVisualizer;

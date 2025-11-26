@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { Share2 } from 'lucide-react';
 import { getAudioEngine, FrequencyPresets } from '@/utils/audioEngine';
 import { 
   getUserPreferences, 
@@ -12,6 +13,8 @@ import {
 } from '@/utils/storage';
 import AudioVisualizer from '@/components/AudioVisualizer';
 import AmbientMixer from '@/components/AmbientMixer';
+import RecommendationEngine from '@/components/RecommendationEngine';
+import ShareCard from '@/components/ShareCard';
 
 interface Track {
   id: number;
@@ -33,6 +36,8 @@ const MusicPlayer = () => {
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [visualizerMode, setVisualizerMode] = useState<'bars' | 'waveform' | 'circular'>('bars');
   const [loopEnabled, setLoopEnabled] = useState(false);
+  const [showShareCard, setShowShareCard] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const audioEngineRef = useRef(getAudioEngine());
 
@@ -95,6 +100,52 @@ const MusicPlayer = () => {
       audioEngineRef.current.setVolume(volume);
     }
   }, [volume]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+
+      switch (e.key.toLowerCase()) {
+        case ' ':
+          e.preventDefault();
+          togglePlay();
+          break;
+        case 'arrowright':
+          e.preventDefault();
+          nextTrack();
+          break;
+        case 'arrowleft':
+          e.preventDefault();
+          previousTrack();
+          break;
+        case 'arrowup':
+          e.preventDefault();
+          setVolume(prev => Math.min(100, prev + 5));
+          break;
+        case 'arrowdown':
+          e.preventDefault();
+          setVolume(prev => Math.max(0, prev - 5));
+          break;
+        case 'l':
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            setLoopEnabled(prev => !prev);
+          }
+          break;
+        case 'p':
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            setShowPlaylist(prev => !prev);
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPlaying]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -198,7 +249,7 @@ const MusicPlayer = () => {
         setSessionStartTime(Date.now());
       } catch (error) {
         console.error('Error starting audio:', error);
-        alert('Unable to start audio. Please check your browser permissions.');
+        setAudioError('Unable to start audio. Please check that your browser allows audio playback and try again.');
       }
     }
   };
@@ -253,6 +304,17 @@ const MusicPlayer = () => {
     }
   };
 
+  const handlePlayRecommendation = async (trackId: number) => {
+    const trackIndex = tracks.findIndex(t => t.id === trackId);
+    if (trackIndex !== -1) {
+      await changeTrack(trackIndex);
+      // Auto-start playing the recommended track
+      if (!isPlaying) {
+        togglePlay();
+      }
+    }
+  };
+
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (progressRef.current) {
       const rect = progressRef.current.getBoundingClientRect();
@@ -266,6 +328,43 @@ const MusicPlayer = () => {
 
   return (
     <>
+      {/* Audio Error Alert */}
+      {audioError && (
+        <motion.div
+          className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 mb-6 backdrop-blur-sm"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <h4 className="text-red-400 font-semibold mb-1">Audio Error</h4>
+              <p className="text-sm text-red-300/80">{audioError}</p>
+              <p className="text-xs text-red-300/60 mt-2">
+                Tip: Some browsers require user interaction before playing audio. Try clicking the play button again.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  setAudioError(null);
+                  await togglePlay();
+                }}
+                className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg text-sm font-medium transition-colors"
+              >
+                Retry
+              </button>
+              <button
+                onClick={() => setAudioError(null)}
+                className="px-4 py-2 bg-[var(--surface-alt)] hover:bg-[var(--primary)]/20 text-[var(--foreground)]/60 rounded-lg text-sm font-medium transition-colors"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Main Player Card */}
         <motion.div
           className="bg-gradient-to-br from-[var(--surface)]/80 to-[var(--surface-alt)]/60 backdrop-blur-xl rounded-3xl p-8 border border-[var(--primary)]/20 shadow-2xl"
@@ -297,16 +396,31 @@ const MusicPlayer = () => {
               </div>
             </div>
             
-            <motion.button
-              className="p-3 bg-[var(--surface-alt)] rounded-full hover:bg-[var(--primary)]/20 transition-colors"
-              onClick={() => setShowPlaylist(!showPlaylist)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-              </svg>
-            </motion.button>
+            <div className="flex items-center gap-2">
+              <motion.button
+                className="p-3 bg-[var(--surface-alt)] rounded-full hover:bg-[var(--primary)]/20 transition-colors"
+                onClick={() => setShowShareCard(true)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                aria-label="Share progress"
+                title="Share your progress"
+              >
+                <Share2 className="w-6 h-6" />
+              </motion.button>
+              
+              <motion.button
+                className="p-3 bg-[var(--surface-alt)] rounded-full hover:bg-[var(--primary)]/20 transition-colors"
+                onClick={() => setShowPlaylist(!showPlaylist)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                aria-label="Toggle playlist"
+                title="View playlist"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+              </motion.button>
+            </div>
           </div>
 
           {/* Audio Visualizer */}
@@ -320,8 +434,8 @@ const MusicPlayer = () => {
             />
             
             {/* Visualizer Mode Switcher */}
-            <div className="flex items-center justify-center gap-2 mt-4">
-              <span className="text-xs text-[var(--foreground)]/50 mr-2">Visualizer:</span>
+            <div className="flex items-center justify-center gap-2 mt-4" role="group" aria-label="Visualizer mode selector">
+              <span className="text-xs text-[var(--foreground)]/50 mr-2" id="visualizer-label">Visualizer:</span>
               {(['bars', 'waveform', 'circular'] as const).map((modeOption) => (
                 <motion.button
                   key={modeOption}
@@ -333,6 +447,10 @@ const MusicPlayer = () => {
                   }`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  aria-label={`${modeOption} visualizer mode`}
+                  aria-pressed={visualizerMode === modeOption}
+                  role="radio"
+                  aria-checked={visualizerMode === modeOption}
                 >
                   {modeOption.charAt(0).toUpperCase() + modeOption.slice(1)}
                 </motion.button>
@@ -371,8 +489,10 @@ const MusicPlayer = () => {
               onClick={previousTrack}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
+              aria-label="Previous track (Left arrow key)"
+              title="Previous track"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.334 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z" />
               </svg>
             </motion.button>
@@ -382,13 +502,16 @@ const MusicPlayer = () => {
               onClick={togglePlay}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              aria-label={`${isPlaying ? 'Pause' : 'Play'} (Spacebar)`}
+              aria-pressed={isPlaying}
+              title={isPlaying ? 'Pause' : 'Play'}
             >
               {isPlaying ? (
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6" />
                 </svg>
               ) : (
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15" />
                 </svg>
               )}
@@ -399,8 +522,10 @@ const MusicPlayer = () => {
               onClick={nextTrack}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
+              aria-label="Next track (Right arrow key)"
+              title="Next track"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.933 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.333-4zM19.933 12.8a1 1 0 000-1.6l-5.333-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.333-4z" />
               </svg>
             </motion.button>
@@ -417,8 +542,11 @@ const MusicPlayer = () => {
               }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              aria-label={`${loopEnabled ? 'Disable' : 'Enable'} loop mode (Press L)`}
+              aria-pressed={loopEnabled}
+              title="Toggle loop mode"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
               <span className="text-sm font-medium">
@@ -441,8 +569,8 @@ const MusicPlayer = () => {
           </div>
 
           {/* Volume Control */}
-          <div className="flex items-center space-x-4">
-            <svg className="w-5 h-5 text-[var(--foreground)]/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex items-center space-x-4" role="group" aria-label="Volume control">
+            <svg className="w-5 h-5 text-[var(--foreground)]/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 16.414V7.586L7.707 4.293A1 1 0 006 5v14a1 1 0 001.707.707L11 16.414z" />
             </svg>
             <input
@@ -455,9 +583,30 @@ const MusicPlayer = () => {
               style={{
                 background: `linear-gradient(to right, var(--wave) 0%, var(--accent) ${volume}%, var(--background) ${volume}%, var(--background) 100%)`
               }}
+              aria-label="Volume slider"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={volume}
+              aria-valuetext={`Volume ${volume}%`}
+              title="Volume (Up/Down arrow keys)"
             />
-            <span className="text-sm text-[var(--foreground)]/60 w-8">{volume}</span>
+            <span className="text-sm text-[var(--foreground)]/60 w-8" aria-live="polite">{volume}</span>
           </div>
+        </motion.div>
+
+        {/* AI Recommendation Engine */}
+        <motion.div
+          className="mt-8"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+        >
+          <RecommendationEngine 
+            onPlayRecommendation={handlePlayRecommendation}
+            currentGoal={currentTrackData.category}
+            currentTrackId={currentTrackData.id}
+          />
         </motion.div>
 
         {/* Playlist */}
@@ -538,6 +687,9 @@ const MusicPlayer = () => {
             ))}
           </div>
         </motion.div>
+
+        {/* Share Card Modal */}
+        <ShareCard isOpen={showShareCard} onClose={() => setShowShareCard(false)} />
     </>
   );
 };

@@ -1,11 +1,12 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -126,15 +127,23 @@ const Header = () => {
 
           {/* Mobile menu button */}
           <motion.button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 text-[var(--foreground)] hover:text-[var(--primary)] transition-colors relative group"
             whileHover={{ 
               scale: 1.1,
               transition: { type: 'spring', stiffness: 400, damping: 10 }
             }}
             whileTap={{ scale: 0.9 }}
+            aria-label="Toggle mobile menu"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
           >
             <svg className="w-6 h-6 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
             </svg>
             {/* Hover background */}
             <motion.div
@@ -143,6 +152,51 @@ const Header = () => {
           </motion.button>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            id="mobile-menu"
+            className="md:hidden bg-[#1a1f35]/98 backdrop-blur-xl border-b border-[#5b9eff]/30"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <nav className="px-4 py-6 space-y-4">
+              {navItems.map((item, index) => (
+                <motion.a
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block text-[var(--foreground)] hover:text-[var(--primary)] transition-colors duration-200 py-2 px-4 rounded-lg hover:bg-[var(--primary)]/10"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  {item.name}
+                </motion.a>
+              ))}
+              <motion.button
+                onClick={() => {
+                  document.getElementById('music-player')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full px-6 py-3 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full font-medium text-center"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Start Session
+              </motion.button>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 };

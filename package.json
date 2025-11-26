@@ -12,6 +12,8 @@
     "@ai-sdk/google": "^2.0.32",
     "ai": "^5.0.93",
     "framer-motion": "^12.23.12",
+    "html2canvas": "^1.4.1",
+    "lucide-react": "^0.555.0",
     "next": "15.5.2",
     "react": "19.1.0",
     "react-canvas-confetti": "^2.0.7",

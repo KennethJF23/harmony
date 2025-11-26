@@ -149,12 +149,12 @@ const WaveRecommendation = memo(({ onRecommendation }: WaveRecommendationProps) 
       {/* Floating Button - LOWEST POSITION (bottom-6) */}
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-8 w-12 h-12 bg-gradient-to-r from-[#5b9eff] to-[#a78bfa] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-40 group"
+        className="fixed bottom-6 right-8 w-12 h-12 bg-gradient-to-r from-[#5b9eff] to-[#a78bfa] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-[60] group"
+        initial={{ opacity: 1, scale: 1 }}
         whileHover={{ scale: 1.1, rotate: 5 }}
         whileTap={{ scale: 0.9 }}
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.5 }}
+        aria-label="Get personalized wave recommendation"
+        title="Wave Recommendation"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -172,7 +172,7 @@ const WaveRecommendation = memo(({ onRecommendation }: WaveRecommendationProps) 
           <>
             {/* Backdrop */}
             <motion.div
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -181,16 +181,19 @@ const WaveRecommendation = memo(({ onRecommendation }: WaveRecommendationProps) 
 
             {/* Modal Content */}
             <motion.div
-              className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[600px] md:max-h-[80vh] bg-gradient-to-br from-[#1a1f35]/95 to-[#0a0e1a]/95 backdrop-blur-xl rounded-2xl border border-[#5b9eff]/20 shadow-2xl z-50 overflow-hidden flex flex-col"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="wave-recommendation-title"
+              className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[600px] md:max-h-[80vh] bg-gradient-to-br from-[#1a1f35]/95 to-[#0a0e1a]/95 backdrop-blur-xl rounded-2xl border border-[#5b9eff]/20 shadow-2xl z-[9999] overflow-hidden flex flex-col"
               initial={{ opacity: 0, scale: 0.9, y: 50 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 50 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             >
               {/* Header */}
               <div className="p-6 border-b border-[#5b9eff]/10">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <h2 id="wave-recommendation-title" className="text-2xl font-bold text-white flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-r from-[#5b9eff] to-[#a78bfa] rounded-full flex items-center justify-center">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
