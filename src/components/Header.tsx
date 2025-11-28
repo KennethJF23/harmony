@@ -2,8 +2,11 @@
 
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const Header = () => {
+  const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -106,7 +109,8 @@ const Header = () => {
 
           {/* CTA Button */}
           <motion.button
-            className="hidden md:block px-6 py-2 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full font-medium relative overflow-hidden group"
+            onClick={() => router.push('/login')}
+            className="hidden md:block px-6 py-2 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full font-medium relative overflow-hidden group cursor-pointer"
             whileHover={{ 
               scale: 1.05,
               boxShadow: '0 8px 25px rgba(122, 162, 247, 0.4)',
