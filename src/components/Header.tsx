@@ -25,7 +25,7 @@ const Header = () => {
     { name: 'Home', href: '/' },
     { name: 'Science', href: '/#science' },
     { name: 'About', href: '/#about' },
-    { name: 'Neurologists', href: '/neurologists' },
+    { name: 'Neuroscientists', href: '/neurologists' },
     { name: 'Pricing', href: '/pricing' }
   ];
 
@@ -93,7 +93,7 @@ const Header = () => {
           {/* CTA Button */}
           <div className="hidden md:flex items-center space-x-4">
             <motion.button
-              onClick={() => router.push('/login')}
+              onClick={() => router.push('/pricing')}
               className="hidden md:block px-6 py-2 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full font-medium relative overflow-hidden group cursor-pointer"
               whileHover={{ 
                 scale: 1.05,
@@ -182,7 +182,7 @@ const Header = () => {
                 </motion.a>
               ))}
               <motion.a
-                href="/player?track=Deep%20Focus%20Alpha&frequency=8-12%20Hz&duration=1500&category=focus"
+                href="/pricing"
                 onClick={() => setMobileMenuOpen(false)}
                 className="block w-full px-6 py-3 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full font-medium text-center"
                 initial={{ opacity: 0, y: 10 }}

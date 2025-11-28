@@ -15,14 +15,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!['user', 'neurologist'].includes(role)) {
+    if (!['user', 'neuroscientist'].includes(role)) {
       return NextResponse.json(
         { error: 'Invalid role' },
         { status: 400 }
       );
     }
 
-    // Connect to database
+    // Mock authentication for development (bypasses MongoDB)
+    if (process.env.NODE_ENV === 'development') {
+      const token = `mock-token-${Date.now()}`;
+      
+      return NextResponse.json(
+        {
+          success: true,
+          token,
+          role: role,
+          user: {
+            id: 'mock-user-id',
+            name: email.split('@')[0],
+            email: email,
+            role: role,
+            ...(role === 'neuroscientist' && {
+              licenseNumber: 'MOCK-12345',
+              institution: 'Development Hospital',
+            }),
+          },
+        },
+        { status: 200 }
+      );
+    }
+
+    // Production: Connect to database
     const { db } = await connectToDatabase();
     const usersCollection = db.collection('users');
 
@@ -71,7 +95,7 @@ export async function POST(request: NextRequest) {
           name: user.name,
           email: user.email,
           role: user.role,
-          ...(user.role === 'neurologist' && {
+          ...(user.role === 'neuroscientist' && {
             licenseNumber: user.licenseNumber,
             institution: user.institution,
           }),

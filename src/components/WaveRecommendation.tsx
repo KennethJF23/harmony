@@ -340,7 +340,7 @@ const WaveRecommendation = memo(({ onRecommendation }: WaveRecommendationProps) 
                           Choose Different
                         </motion.button>
                         <motion.button
-                          onClick={handleStartSession}
+                          onClick={() => window.location.href = '/pricing'}
                           className="flex-1 py-3 bg-gradient-to-r from-[#5b9eff] to-[#a78bfa] text-white rounded-lg font-medium shadow-lg shadow-[#5b9eff]/30 hover:shadow-xl transition-all"
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}

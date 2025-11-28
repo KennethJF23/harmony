@@ -6,14 +6,14 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function RegisterPage() {
-  const [userType, setUserType] = useState<'user' | 'neurologist'>('user');
+  const [userType, setUserType] = useState<'user' | 'neuroscientist'>('user');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
-    licenseNumber: '', // For neurologists
-    institution: '', // For neurologists
+    licenseNumber: '', // For neuroscientists
+    institution: '', // For neuroscientists
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -45,8 +45,8 @@ export default function RegisterPage() {
       return;
     }
 
-    if (userType === 'neurologist' && !formData.licenseNumber) {
-      setError('License number is required for neurologists');
+    if (userType === 'neuroscientist' && !formData.licenseNumber) {
+      setError('License number is required for neuroscientists');
       setIsLoading(false);
       return;
     }
@@ -60,8 +60,8 @@ export default function RegisterPage() {
           email: formData.email,
           password: formData.password,
           role: userType,
-          licenseNumber: userType === 'neurologist' ? formData.licenseNumber : undefined,
-          institution: userType === 'neurologist' ? formData.institution : undefined,
+          licenseNumber: userType === 'neuroscientist' ? formData.licenseNumber : undefined,
+          institution: userType === 'neuroscientist' ? formData.institution : undefined,
         }),
       });
 
@@ -216,14 +216,14 @@ export default function RegisterPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setUserType('neurologist')}
+                    onClick={() => setUserType('neuroscientist')}
                     className={`flex-1 py-3 rounded-xl font-medium transition-all duration-300 ${
-                      userType === 'neurologist'
+                      userType === 'neuroscientist'
                         ? 'bg-gradient-to-r from-[var(--wave)] to-[var(--accent)] text-white shadow-lg'
                         : 'text-[var(--foreground)]/60 hover:text-[var(--foreground)]'
                     }`}
                   >
-                    Neurologist
+                    Neuroscientist
                   </button>
                 </div>
 
@@ -262,8 +262,8 @@ export default function RegisterPage() {
                     />
                   </div>
 
-                  {/* Neurologist-specific Fields */}
-                  {userType === 'neurologist' && (
+                  {/* Neuroscientist-specific Fields */}
+                  {userType === 'neuroscientist' && (
                     <motion.div
                       className="space-y-5"
                       initial={{ opacity: 0, height: 0 }}

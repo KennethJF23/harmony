@@ -10,7 +10,7 @@ import AIAssistant from '@/components/AIAssistant';
 import PWAInstaller from '@/components/PWAInstaller';
 import ScrollToTop from '@/components/ScrollToTop';
 
-export default function NeurologistsPage() {
+export default function NeuroscientistsPage() {
   const features = [
     {
       icon: Brain,
@@ -73,7 +73,7 @@ export default function NeurologistsPage() {
             Advanced neurological tools for evidence-based brainwave therapy and patient monitoring
           </p>
           <p className="text-sm text-[#7aa2f7]/60 mb-8">
-            Trusted by neurologists, therapists, and clinical researchers
+            Trusted by neuroscientists, therapists, and clinical researchers
           </p>
 
           <div className="flex gap-4 justify-center flex-wrap">
@@ -250,7 +250,7 @@ export default function NeurologistsPage() {
             Ready to Elevate Your Practice?
           </h2>
           <p className="text-[#a9b1d6] mb-8 max-w-2xl mx-auto">
-            Join leading neurologists and therapists using Harmony Clinical for evidence-based brainwave therapy.
+            Join leading neuroscientists and therapists using Harmony Clinical for evidence-based brainwave therapy.
             Start your 14-day trial with full access to all professional features.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
