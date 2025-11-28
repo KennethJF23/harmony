@@ -100,13 +100,13 @@ const Footer = () => {
                   <div className="w-2.5 h-2.5 bg-gradient-to-r from-[var(--wave)] to-[var(--accent)] rounded-full animate-pulse"></div>
                 </div>
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent">
-                Harmonics
+              <span className="text-2xl font-semibold text-white">
+                Harmony
               </span>
             </motion.div>
             
-            <p className="text-[var(--foreground)]/70 text-lg leading-relaxed mb-6 max-w-md">
-              Transforming minds through scientifically-designed brain wave frequencies. Experience the future of cognitive enhancement and mental wellness.
+            <p className="text-gray-400 text-base leading-relaxed mb-6 max-w-md">
+              Free and open-source binaural beat generator. Built with Web Audio API for real-time frequency generation.
             </p>
 
             {/* Newsletter Signup */}
@@ -236,21 +236,6 @@ const Footer = () => {
             </motion.div>
           </div>
         </motion.div>
-
-        {/* Back to Top */}
-        <motion.button
-          className="fixed bottom-8 right-8 w-12 h-12 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          whileHover={{ scale: 1.1, y: -2 }}
-          whileTap={{ scale: 0.9 }}
-          initial={{ opacity: 0, y: 100 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 1 }}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-          </svg>
-        </motion.button>
       </div>
     </footer>
   );

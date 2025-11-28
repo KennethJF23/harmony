@@ -2,16 +2,16 @@
 
 :root {
   /* Neural Network / Brain Theme Colors */
-  --background: #0a0b14;
-  --surface: #1a1b26;
-  --surface-alt: #24283b;
-  --foreground: #c0caf5;
-  --primary: #7aa2f7;
-  --secondary: #bb9af7;
-  --accent: #9ece6a;
-  --neural: #f7768e;
-  --wave: #73daca;
-  --glow: #e0af68;
+  --background: #0a0e1a;
+  --surface: #1a1f35;
+  --surface-alt: #2a2f4a;
+  --foreground: #e0e6ff;
+  --primary: #5b9eff;
+  --secondary: #a78bfa;
+  --accent: #34d399;
+  --neural: #fb7185;
+  --wave: #2dd4bf;
+  --glow: #fbbf24;
   
   /* Gradient overlays */
   --gradient-primary: linear-gradient(135deg, #7aa2f7 0%, #bb9af7 100%);
@@ -34,10 +34,22 @@
 }
 
 body {
-  background: var(--background);
+  background: linear-gradient(135deg, #0a0e1a 0%, #1a1f35 50%, #0f1729 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 25s ease infinite;
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   overflow-x: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  /* Ultra-smooth scrolling optimization */
+  overscroll-behavior-y: none;
+  scroll-padding-top: 0px;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 /* Custom scrollbar */
@@ -58,20 +70,343 @@ body {
   background: var(--secondary);
 }
 
-/* Smooth animations */
+/* Custom scrollbar for modal */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(26, 31, 53, 0.3);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
+}
+
+/* Ultra-smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 0px;
+  overflow-x: hidden;
+  overflow-y: scroll; /* Always show scrollbar to prevent layout shift */
+}
+
 * {
   scroll-behavior: smooth;
+}
+
+/* Optimize scroll performance */
+body, html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth scroll for all containers */
+* {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Improve scroll performance - 60fps optimization */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* GPU acceleration for smooth animations */
+.gpu-accelerate {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Smooth scrolling containers */
+.scroll-smooth {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+}
+
+/* Optimize fixed elements - force GPU compositing */
+.fixed-optimized {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Ultra-smooth button animations */
+button, a {
+  transform: translateZ(0);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Optimize scrolling performance */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--primary), var(--secondary));
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--secondary), var(--primary));
 }
 
 /* Neural network background pattern */
 .neural-bg {
   background-image: 
-    radial-gradient(circle at 25% 25%, rgba(122, 162, 247, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(187, 154, 247, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(115, 218, 202, 0.03) 0%, transparent 50%);
+    radial-gradient(circle at 25% 25%, rgba(91, 158, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(167, 139, 250, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(45, 212, 191, 0.05) 0%, transparent 50%);
 }
 
 /* Custom gradient utilities */
 .bg-gradient-radial {
   background-image: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
+/* Glassmorphism effect */
+.glass {
+  background: rgba(26, 27, 38, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(122, 162, 247, 0.1);
+}
+
+/* Glow effects */
+.glow-sm {
+  box-shadow: 0 0 15px rgba(122, 162, 247, 0.3);
+}
+
+.glow-md {
+  box-shadow: 0 0 30px rgba(122, 162, 247, 0.4);
+}
+
+.glow-lg {
+  box-shadow: 0 0 50px rgba(122, 162, 247, 0.5);
+}
+
+/* Pulse animation */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(122, 162, 247, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(122, 162, 247, 0.6);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Shimmer effect */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(122, 162, 247, 0.2) 50%,
+    transparent 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Enhanced focus states */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+button,
+a,
+input,
+select {
+  transition: all 0.3s ease;
+}
+
+/* Loading states */
+.loading {
+  background: linear-gradient(
+    90deg,
+    var(--surface) 0%,
+    var(--surface-alt) 50%,
+    var(--surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  --background: #000000;
+  --surface: #1a1a1a;
+  --surface-alt: #2d2d2d;
+  --foreground: #ffffff;
+  --primary: #00bfff;
+  --secondary: #ff00ff;
+  --accent: #00ff00;
+  --neural: #ff0080;
+  --wave: #00ffff;
+  --glow: #ffff00;
+}
+
+.high-contrast body {
+  background: #000000;
+  animation: none;
+}
+
+.high-contrast button,
+.high-contrast a,
+.high-contrast input {
+  border: 2px solid currentColor;
+}
+
+.high-contrast .glass {
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid var(--primary);
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Skip to content link */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  background: var(--primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  border-radius: 0 0 0.5rem 0;
+  z-index: 10000;
+  font-weight: 600;
+  transition: top 0.3s;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Keyboard focus indicators */
+*:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  html {
+    scroll-behavior: auto;
+  }
+  
+  body {
+    animation: none;
+  }
+}
+
+/* Mobile touch improvements */
+@media (hover: none) and (pointer: coarse) {
+  button,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  input,
+  select,
+  textarea {
+    font-size: 16px; /* Prevents iOS zoom */
+  }
+}
+
+/* Print styles */
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Focus management for modals */
+[role="dialog"],
+[role="alertdialog"] {
+  position: fixed;
+}
+
+/* Improve tap targets on mobile */
+@media (max-width: 768px) {
+  button,
+  a,
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 48px;
+    min-width: 48px;
+  }
 }

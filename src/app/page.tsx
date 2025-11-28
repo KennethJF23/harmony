@@ -1,17 +1,35 @@
-import Header from '@/components/Header';
+'use client';
+
+import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
-import MusicPlayer from '@/components/MusicPlayer';
+import ScienceSection from '@/components/ScienceSection';
+import AboutSection from '@/components/AboutSection';
 import Footer from '@/components/Footer';
+import AIAssistant from '@/components/AIAssistant';
+import PWAInstaller from '@/components/PWAInstaller';
+import WaveRecommendation from '@/components/WaveRecommendation';
+import ScrollToTop from '@/components/ScrollToTop';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[var(--background)]">
-      <Header />
-      <main>
+    <div className="min-h-screen">
+      {/* Skip to main content */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      
+      <Navbar />
+      <main id="main-content" className="gpu-accelerate">
         <HeroSection />
-        <MusicPlayer />
+        
+        <ScienceSection />
+        <AboutSection />
       </main>
       <Footer />
+      <AIAssistant />
+      <PWAInstaller />
+      <WaveRecommendation />
+      <ScrollToTop />
     </div>
   );
 }

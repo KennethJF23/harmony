@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -8,8 +8,11 @@ import { useRouter } from 'next/navigation';
 const Header = () => {
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
@@ -19,18 +22,19 @@ const Header = () => {
   }, []);
 
   const navItems = [
-    { name: 'Home', href: '#home' },
-    { name: 'Music', href: '#music' },
-    { name: 'Science', href: '#science' },
-    { name: 'About', href: '#about' }
+    { name: 'Home', href: '/' },
+    { name: 'Science', href: '/#science' },
+    { name: 'About', href: '/#about' },
+    { name: 'Neurologists', href: '/neurologists' },
+    { name: 'Pricing', href: '/pricing' }
   ];
 
   return (
     <motion.header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-[var(--surface)]/80 backdrop-blur-md border-b border-[var(--primary)]/20' 
-          : 'bg-transparent'
+        mounted && isScrolled
+          ? 'bg-[#1a1f35]/95 backdrop-blur-xl border-b border-[#5b9eff]/30 shadow-lg shadow-[#5b9eff]/10' 
+          : 'bg-gradient-to-b from-[#0a0e1a]/80 to-transparent backdrop-blur-sm'
       }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -40,35 +44,14 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <motion.div
-            className="flex items-center space-x-2"
-            whileHover={{ 
-              scale: 1.05,
-              transition: { type: 'spring', stiffness: 400, damping: 10 }
-            }}
-            transition={{ type: 'spring', stiffness: 300 }}
+            className="flex items-center space-x-2.5"
           >
-            <motion.div 
-              className="w-8 h-8 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] rounded-full flex items-center justify-center"
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-            >
-              <div className="w-4 h-4 bg-[var(--background)] rounded-full flex items-center justify-center">
-                <motion.div 
-                  className="w-2 h-2 bg-gradient-to-r from-[var(--wave)] to-[var(--accent)] rounded-full"
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
-              </div>
-            </motion.div>
-            <motion.span 
-              className="text-xl font-bold bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-transparent"
-              whileHover={{ 
-                textShadow: '0 0 8px rgba(122, 162, 247, 0.5)',
-                transition: { duration: 0.3 }
-              }}
-            >
-              Harmonics
-            </motion.span>
+            <div className="w-7 h-7 bg-gradient-to-br from-[#5b9eff] to-[#7c3aed] rounded-lg flex items-center justify-center">
+              <div className="w-3 h-3 bg-white/90 rounded-sm" />
+            </div>
+            <span className="text-xl font-semibold text-white">
+              Harmony
+            </span>
           </motion.div>
 
           {/* Navigation */}
@@ -108,6 +91,14 @@ const Header = () => {
           </nav>
 
           {/* CTA Button */}
+          <div className="hidden md:flex items-center space-x-4">
+            <motion.a
+              href="/player?track=Deep%20Focus%20Alpha&frequency=8-12%20Hz&duration=1500&category=focus"
+              className="px-6 py-2 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full font-medium relative overflow-hidden group"
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: '0 8px 25px rgba(122, 162, 247, 0.4)',
+                transition: { type: 'spring', stiffness: 400, damping: 10 }
           <motion.button
             onClick={() => router.push('/login')}
             className="hidden md:block px-6 py-2 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full font-medium relative overflow-hidden group cursor-pointer"
@@ -139,20 +130,52 @@ const Header = () => {
                 repeat: Infinity,
                 ease: [0.42, 0, 0.58, 1] as const
               }}
-            />
-          </motion.button>
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              <span className="relative z-10">Start Session</span>
+              {/* Animated background overlay */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-[var(--wave)] to-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{ borderRadius: 'inherit' }}
+              />
+              {/* Pulse effect */}
+              <motion.div
+                className="absolute inset-0 border-2 border-[var(--primary)] rounded-full opacity-0"
+                animate={{
+                  scale: [1, 1.5, 2],
+                  opacity: [0, 0.5, 0]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: [0.42, 0, 0.58, 1] as const
+                }}
+              />
+            </motion.a>
+          </div>
 
           {/* Mobile menu button */}
           <motion.button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 text-[var(--foreground)] hover:text-[var(--primary)] transition-colors relative group"
             whileHover={{ 
               scale: 1.1,
               transition: { type: 'spring', stiffness: 400, damping: 10 }
             }}
             whileTap={{ scale: 0.9 }}
+            aria-label="Toggle mobile menu"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
           >
             <svg className="w-6 h-6 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
             </svg>
             {/* Hover background */}
             <motion.div
@@ -161,6 +184,49 @@ const Header = () => {
           </motion.button>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            id="mobile-menu"
+            className="md:hidden bg-[#1a1f35]/98 backdrop-blur-xl border-b border-[#5b9eff]/30"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <nav className="px-4 py-6 space-y-4">
+              {navItems.map((item, index) => (
+                <motion.a
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block text-[var(--foreground)] hover:text-[var(--primary)] transition-colors duration-200 py-2 px-4 rounded-lg hover:bg-[var(--primary)]/10"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  {item.name}
+                </motion.a>
+              ))}
+              <motion.a
+                href="/player?track=Deep%20Focus%20Alpha&frequency=8-12%20Hz&duration=1500&category=focus"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block w-full px-6 py-3 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full font-medium text-center"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Start Session
+              </motion.a>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 };
