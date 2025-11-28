@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Headphones, BarChart3, CreditCard, Info, Menu, X, User } from 'lucide-react';
-import useAuth from '@/hooks/useAuth';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -21,18 +20,13 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const { isAuthenticated, user, logout } = useAuth();
-
   const navItems = [
-    { name: 'Home', href: '/', icon: Home, public: true },
-    { name: 'Science', href: '/#science', icon: Home, public: true },
-    { name: 'Frequencies', href: '/#frequencies', icon: Home, public: true },
-    { name: 'Research', href: '/#research', icon: Home, public: true },
-    { name: 'Pricing', href: '/pricing', icon: CreditCard, public: true },
-    { name: 'About', href: '/#about', icon: Info, public: true },
-    { name: 'Sessions', href: '/sessions', icon: Headphones, public: false },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3, public: false },
-  ].filter((i) => (i.public ? true : isAuthenticated));
+    { name: 'Home', href: '/', icon: Home },
+    { name: 'Science', href: '/#science', icon: Info },
+    { name: 'Frequencies', href: '/#frequencies', icon: Info },
+    { name: 'Research', href: '/#research', icon: Info },
+    { name: 'About', href: '/#about', icon: Info },
+  ];
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -104,32 +98,7 @@ const Navbar = () => {
 
           {/* Profile/Login Button */}
           <div className="hidden md:flex items-center gap-3">
-            {isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                <motion.div className="px-3 py-2 rounded-lg bg-[#2a3254] text-[#7aa2f7]">
-                  <span className="text-sm">{user?.name ?? 'Profile'}</span>
-                </motion.div>
-                <motion.button
-                  onClick={() => logout()}
-                  className="px-4 py-2 rounded-lg text-sm bg-transparent border border-[#5b9eff]/20 text-[#a9b1d6] hover:text-[#fff]"
-                >
-                  Logout
-                </motion.button>
-              </div>
-            ) : (
-              <Link href="/login">
-                <motion.button
-                  className="p-2 rounded-lg text-[#a9b1d6] hover:text-[#5b9eff] hover:bg-[#5b9eff]/10 transition-all"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  aria-label="User Profile"
-                >
-                  <User className="w-5 h-5" />
-                </motion.button>
-              </Link>
-            )}
-
-            <Link href="/pricing">
+            <Link href="/sessions">
               <motion.button
                 className="px-5 py-2 bg-gradient-to-r from-[#5b9eff] to-[#7c3aed] text-white rounded-lg font-medium shadow-lg shadow-[#5b9eff]/30"
                 whileHover={{ scale: 1.05, boxShadow: '0 8px 25px rgba(91, 158, 255, 0.4)' }}
@@ -188,7 +157,7 @@ const Navbar = () => {
                 );
               })}
               
-              <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
+              <Link href="/sessions" onClick={() => setMobileMenuOpen(false)}>
                 <motion.button
                   className="w-full px-5 py-3 bg-gradient-to-r from-[#5b9eff] to-[#7c3aed] text-white rounded-lg font-medium shadow-lg text-center"
                   initial={{ opacity: 0, y: 10 }}

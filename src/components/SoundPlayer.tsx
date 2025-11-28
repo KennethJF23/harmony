@@ -111,7 +111,7 @@ const SoundPlayer = ({
     } else {
       // Start/Resume
       try {
-        const asset = AudioAssets[trackName as any];
+        const asset = AudioAssets[trackName as keyof typeof AudioAssets];
         if (asset && asset.type === 'ambient') {
           // ambient generator built into the AudioEngine
           await audioEngine.startAmbient(asset.ambientType, volume / 100);

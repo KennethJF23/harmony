@@ -30,7 +30,7 @@ export default function PricingPage() {
         'Offline PWA mode',
       ],
       cta: 'Start Pro',
-      ctaLink: '/checkout?plan=pro',
+      ctaLink: '/sessions',
       icon: Zap,
       gradient: 'from-[#5b9eff] to-[#7c3aed]',
       borderGradient: 'from-[#5b9eff] to-[#7c3aed]',
@@ -55,7 +55,7 @@ export default function PricingPage() {
         'Dedicated clinical support',
       ],
       cta: 'Get Clinical',
-      ctaLink: '/checkout?plan=clinical',
+      ctaLink: '/sessions',
       icon: Crown,
       gradient: 'from-[#7c3aed]/20 to-[#5b9eff]/20',
       borderGradient: 'from-[#a78bfa]/50 to-[#bb9af7]/50',
@@ -93,13 +93,6 @@ export default function PricingPage() {
           <p className="text-sm text-[#7aa2f7]/60">
             14-day money-back guarantee • Cancel anytime
           </p>
-          <div className="mt-4">
-            <Link href="/login">
-              <motion.button className="px-4 py-2 rounded-md bg-[#2a3254] text-[#7aa2f7] hover:bg-[#3a4264]">
-                Login
-              </motion.button>
-            </Link>
-          </div>
         </motion.div>
       </div>
 
