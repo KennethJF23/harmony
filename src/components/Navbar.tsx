@@ -22,9 +22,9 @@ const Navbar = () => {
 
   const navItems = [
     { name: 'Home', href: '/', icon: Home },
-    { name: 'Sessions', href: '/sessions', icon: Headphones },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-    { name: 'Pricing', href: '/pricing', icon: CreditCard },
+    { name: 'Science', href: '/#science', icon: Info },
+    { name: 'Frequencies', href: '/#frequencies', icon: Info },
+    { name: 'Research', href: '/#research', icon: Info },
     { name: 'About', href: '/#about', icon: Info },
   ];
 
@@ -98,15 +98,6 @@ const Navbar = () => {
 
           {/* Profile/Login Button */}
           <div className="hidden md:flex items-center gap-3">
-            <motion.button
-              className="p-2 rounded-lg text-[#a9b1d6] hover:text-[#5b9eff] hover:bg-[#5b9eff]/10 transition-all"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              aria-label="User Profile"
-            >
-              <User className="w-5 h-5" />
-            </motion.button>
-            
             <Link href="/sessions">
               <motion.button
                 className="px-5 py-2 bg-gradient-to-r from-[#5b9eff] to-[#7c3aed] text-white rounded-lg font-medium shadow-lg shadow-[#5b9eff]/30"

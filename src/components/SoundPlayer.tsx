@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, Square, Volume2, Sparkles } from 'lucide-react';
 import { useSyncedAudioTimer } from '@/hooks/useSyncedAudioTimer';
 import { getAudioEngine, FrequencyPresets } from '@/utils/audioEngine';
+import AudioAssets from '@/utils/audioAssets';
 import { trackSession } from '@/utils/storage';
 import AudioVisualizer from '@/components/AudioVisualizer';
 
@@ -110,11 +111,24 @@ const SoundPlayer = ({
     } else {
       // Start/Resume
       try {
-        await audioEngine.start({
-          baseFrequency,
-          beatFrequency,
-          volume,
-        });
+        const asset = AudioAssets[trackName as keyof typeof AudioAssets];
+        if (asset && asset.type === 'ambient') {
+          // ambient generator built into the AudioEngine
+          await audioEngine.startAmbient(asset.ambientType, volume / 100);
+        } else if (asset && asset.type === 'binaural') {
+          await audioEngine.start({
+            baseFrequency: asset.preset.baseFrequency ?? baseFrequency,
+            beatFrequency: asset.preset.beatFrequency ?? beatFrequency,
+            volume,
+          });
+        } else {
+          // fallback to binaural
+          await audioEngine.start({
+            baseFrequency,
+            beatFrequency,
+            volume,
+          });
+        }
         start();
         
         if (!sessionStartTime) {

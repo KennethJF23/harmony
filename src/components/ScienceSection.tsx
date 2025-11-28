@@ -141,7 +141,7 @@ const ScienceSection = () => {
         </motion.div>
 
         {/* Brainwave Types */}
-        <motion.div className="mb-20" variants={itemVariants}>
+        <motion.div id="frequencies" className="mb-20" variants={itemVariants}>
           <h3 className="text-3xl font-bold text-[var(--foreground)] mb-8 text-center">Brain Wave Frequencies</h3>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {brainwaveTypes.map((wave) => (
@@ -173,7 +173,7 @@ const ScienceSection = () => {
         </motion.div>
 
         {/* Research Stats */}
-        <motion.div variants={itemVariants}>
+        <motion.div id="research" variants={itemVariants}>
           <h3 className="text-3xl font-bold text-[var(--foreground)] mb-8 text-center">Research-Backed Results</h3>
           <div className="grid md:grid-cols-3 gap-8">
             {research.map((item) => (
