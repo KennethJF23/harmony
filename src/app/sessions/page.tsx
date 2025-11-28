@@ -4,60 +4,38 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import SoundPlayer from '@/components/player/SoundPlayer';
+import SyncedSession from '@/components/SyncedSession';
 import AIAssistant from '@/components/AIAssistant';
 import PWAInstaller from '@/components/PWAInstaller';
 import ScrollToTop from '@/components/ScrollToTop';
-import { FrequencyPresets } from '@/utils/audioEngine';
+import { motion } from 'framer-motion';
 
 function SessionsContent() {
   const searchParams = useSearchParams();
-  
-  const trackTitle = searchParams.get('track') || 'Deep Focus Alpha';
-  const frequency = searchParams.get('frequency') || '8-12 Hz';
-  const duration = parseInt(searchParams.get('duration') || '1500', 10);
-  const category = (searchParams.get('category') || 'focus') as string;
-
-  // Map frequency to audio engine presets
-  const getFrequencyPreset = () => {
-    const freq = frequency.toLowerCase();
-    if (freq.includes('4-8') || freq.includes('theta')) {
-      return {
-        base: FrequencyPresets.THETA.baseFrequency,
-        beat: FrequencyPresets.THETA.beatFrequency,
-      };
-    } else if (freq.includes('13-30') || freq.includes('beta')) {
-      return {
-        base: FrequencyPresets.BETA.baseFrequency,
-        beat: FrequencyPresets.BETA.beatFrequency,
-      };
-    } else if (freq.includes('0.5-4') || freq.includes('delta')) {
-      return {
-        base: FrequencyPresets.DELTA.baseFrequency,
-        beat: FrequencyPresets.DELTA.beatFrequency,
-      };
-    } else {
-      return {
-        base: FrequencyPresets.ALPHA.baseFrequency,
-        beat: FrequencyPresets.ALPHA.beatFrequency,
-      };
-    }
-  };
-
-  const { base, beat } = getFrequencyPreset();
+  const trackId = searchParams.get('track');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0e1a] via-[#1a1f35] to-[#0a0e1a]">
       <Navbar />
       <main className="pt-24 pb-16 px-4">
-        <SoundPlayer
-          trackTitle={trackTitle}
-          frequency={frequency}
-          duration={duration}
-          baseFrequency={base}
-          beatFrequency={beat}
-          category={category}
-        />
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-8"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#5b9eff] to-[#7aa2f7] bg-clip-text text-transparent mb-4">
+              Your Focus Session
+            </h1>
+            <p className="text-lg text-[var(--foreground)]/70">
+              Audio and timer perfectly synced for optimal productivity
+            </p>
+          </motion.div>
+
+          <SyncedSession 
+            initialTrackId={trackId || undefined}
+          />
+        </div>
       </main>
       <Footer />
       <AIAssistant />
