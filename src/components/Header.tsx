@@ -92,43 +92,13 @@ const Header = () => {
 
           {/* CTA Button */}
           <div className="hidden md:flex items-center space-x-4">
-            <motion.a
-              href="/player?track=Deep%20Focus%20Alpha&frequency=8-12%20Hz&duration=1500&category=focus"
-              className="px-6 py-2 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full font-medium relative overflow-hidden group"
+            <motion.button
+              onClick={() => router.push('/login')}
+              className="hidden md:block px-6 py-2 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full font-medium relative overflow-hidden group cursor-pointer"
               whileHover={{ 
                 scale: 1.05,
                 boxShadow: '0 8px 25px rgba(122, 162, 247, 0.4)',
                 transition: { type: 'spring', stiffness: 400, damping: 10 }
-          <motion.button
-            onClick={() => router.push('/login')}
-            className="hidden md:block px-6 py-2 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full font-medium relative overflow-hidden group cursor-pointer"
-            whileHover={{ 
-              scale: 1.05,
-              boxShadow: '0 8px 25px rgba(122, 162, 247, 0.4)',
-              transition: { type: 'spring', stiffness: 400, damping: 10 }
-            }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-          >
-            <span className="relative z-10">Start Session</span>
-            {/* Animated background overlay */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-[var(--wave)] to-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              style={{ borderRadius: 'inherit' }}
-            />
-            {/* Pulse effect */}
-            <motion.div
-              className="absolute inset-0 border-2 border-[var(--primary)] rounded-full opacity-0"
-              animate={{
-                scale: [1, 1.5, 2],
-                opacity: [0, 0.5, 0]
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: [0.42, 0, 0.58, 1] as const
               }}
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, x: 20 }}
@@ -154,7 +124,7 @@ const Header = () => {
                   ease: [0.42, 0, 0.58, 1] as const
                 }}
               />
-            </motion.a>
+            </motion.button>
           </div>
 
           {/* Mobile menu button */}
