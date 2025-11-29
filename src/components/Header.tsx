@@ -101,13 +101,13 @@ const Header = () => {
                 transition: { type: 'spring', stiffness: 400, damping: 10 }
               }}
               whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 12 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
+              transition={{ duration: 0.45, delay: 0.3 }}
             >
               <span className="relative z-10">Start Session</span>
-              {/* Animated background overlay */}
               <motion.div
+                aria-hidden
                 className="absolute inset-0 bg-gradient-to-r from-[var(--wave)] to-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 style={{ borderRadius: 'inherit' }}
               />

@@ -6,11 +6,11 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Home, Music, LogOut } from 'lucide-react';
 import Footer from '@/components/Footer';
-import SoundPlayer from '@/components/player/SoundPlayer';
+import SyncedSession from '@/components/SyncedSession';
 import AIAssistant from '@/components/AIAssistant';
 import PWAInstaller from '@/components/PWAInstaller';
 import ScrollToTop from '@/components/ScrollToTop';
-import { FrequencyPresets } from '@/utils/audioEngine';
+import { motion } from 'framer-motion';
 
 function SessionsContent() {
   const searchParams = useSearchParams();
@@ -126,14 +126,24 @@ function SessionsContent() {
       </nav>
 
       <main className="pt-24 pb-16 px-4">
-        <SoundPlayer
-          trackTitle={trackTitle}
-          frequency={frequency}
-          duration={duration}
-          baseFrequency={base}
-          beatFrequency={beat}
-          category={category}
-        />
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-8"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[#5b9eff] to-[#7aa2f7] bg-clip-text text-transparent mb-4">
+              Your Focus Session
+            </h1>
+            <p className="text-lg text-[var(--foreground)]/70">
+              Audio and timer perfectly synced for optimal productivity
+            </p>
+          </motion.div>
+
+          <SyncedSession 
+            initialTrackId={trackId || undefined}
+          />
+        </div>
       </main>
       <Footer />
       <AIAssistant />

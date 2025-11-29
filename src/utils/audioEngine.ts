@@ -1,12 +1,18 @@
 /**
- * Audio Engine for Binaural Beats Generation
- * Generates real-time binaural beats using Web Audio API
+ * Enhanced Audio Engine for Binaural Beats Generation and Audio File Playback
+ * Handles both real-time binaural beats using Web Audio API and audio file playback
  */
 
 export interface BinauralConfig {
   baseFrequency: number;
   beatFrequency: number;
   volume: number;
+}
+
+export interface AudioFileConfig {
+  buffer: AudioBuffer;
+  volume: number;
+  loop?: boolean;
 }
 
 export class AudioEngine {
@@ -21,6 +27,13 @@ export class AudioEngine {
   private frequencyDataArray: Uint8Array<ArrayBuffer> = new Uint8Array(0);
   private isInitialized: boolean = false;
   private isPlaying: boolean = false;
+  private playbackMode: 'binaural' | 'file' | null = null;
+  
+  // File playback
+  private fileSource: AudioBufferSourceNode | null = null;
+  private fileGain: GainNode | null = null;
+  private fileStartTime: number = 0;
+  private filePauseTime: number = 0;
   
   // Ambient sound sources
   private ambientSources: Map<string, AudioBufferSourceNode> = new Map();
@@ -112,20 +125,123 @@ export class AudioEngine {
     this.rightOscillator.start();
 
     this.isPlaying = true;
+    this.playbackMode = 'binaural';
   }
 
   /**
-   * Stop playing binaural beats
+   * Start playing audio file
+   */
+  public async startFile(config: AudioFileConfig): Promise<void> {
+    if (!this.audioContext || !this.isInitialized) {
+      throw new Error('AudioContext not initialized');
+    }
+
+    // Resume AudioContext if suspended
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
+
+    // Stop any existing audio
+    this.stop();
+
+    // Create source from buffer
+    this.fileSource = this.audioContext.createBufferSource();
+    this.fileSource.buffer = config.buffer;
+    this.fileSource.loop = config.loop || false;
+
+    // Create gain node
+    this.fileGain = this.audioContext.createGain();
+    this.fileGain.gain.value = config.volume / 100;
+
+    // Create analyser
+    this.analyser = this.audioContext.createAnalyser();
+    this.analyser.fftSize = 2048;
+    this.analyser.smoothingTimeConstant = 0.8;
+    this.frequencyDataArray = new Uint8Array(this.analyser.frequencyBinCount);
+
+    // Connect: source -> gain -> analyser -> destination
+    this.fileSource.connect(this.fileGain);
+    this.fileGain.connect(this.analyser);
+    this.analyser.connect(this.audioContext.destination);
+
+    // Start playback
+    this.fileStartTime = this.audioContext.currentTime;
+    this.filePauseTime = 0;
+    this.fileSource.start(0);
+
+    this.isPlaying = true;
+    this.playbackMode = 'file';
+  }
+
+  /**
+   * Pause audio playback (only works with files)
+   */
+  public pause(): void {
+    if (this.playbackMode === 'file' && this.fileSource && this.audioContext) {
+      this.filePauseTime = this.audioContext.currentTime - this.fileStartTime;
+      this.stop();
+    }
+  }
+
+  /**
+   * Resume audio playback (only works with files)
+   */
+  public async resume(buffer: AudioBuffer, volume: number): Promise<void> {
+    if (!this.audioContext || this.playbackMode !== 'file') return;
+
+    // Create new source
+    this.fileSource = this.audioContext.createBufferSource();
+    this.fileSource.buffer = buffer;
+    this.fileSource.loop = false;
+
+    // Create gain node
+    this.fileGain = this.audioContext.createGain();
+    this.fileGain.gain.value = volume / 100;
+
+    // Reconnect analyser
+    if (!this.analyser) {
+      this.analyser = this.audioContext.createAnalyser();
+      this.analyser.fftSize = 2048;
+      this.frequencyDataArray = new Uint8Array(this.analyser.frequencyBinCount);
+    }
+
+    // Connect
+    this.fileSource.connect(this.fileGain);
+    this.fileGain.connect(this.analyser);
+    this.analyser.connect(this.audioContext.destination);
+
+    // Start from paused position
+    this.fileSource.start(0, this.filePauseTime);
+    this.fileStartTime = this.audioContext.currentTime - this.filePauseTime;
+    this.isPlaying = true;
+  }
+
+  /**
+   * Get current playback position (for files)
+   */
+  public getCurrentTime(): number {
+    if (this.playbackMode === 'file' && this.audioContext) {
+      if (this.isPlaying) {
+        return this.audioContext.currentTime - this.fileStartTime;
+      }
+      return this.filePauseTime;
+    }
+    return 0;
+  }
+
+  /**
+   * Stop all playback (binaural or file)
    */
   public stop(): void {
+    // Stop binaural oscillators
     if (this.leftOscillator) {
-      this.leftOscillator.stop();
+      try { this.leftOscillator.stop(); } catch (e) { /* already stopped */ }
       this.leftOscillator.disconnect();
       this.leftOscillator = null;
     }
 
     if (this.rightOscillator) {
-      this.rightOscillator.stop();
+      try { this.rightOscillator.stop(); } catch (e) { /* already stopped */ }
       this.rightOscillator.disconnect();
       this.rightOscillator = null;
     }
@@ -150,15 +266,36 @@ export class AudioEngine {
       this.masterGain = null;
     }
 
+    // Stop file playback
+    if (this.fileSource) {
+      try { this.fileSource.stop(); } catch (e) { /* already stopped */ }
+      this.fileSource.disconnect();
+      this.fileSource = null;
+    }
+
+    if (this.fileGain) {
+      this.fileGain.disconnect();
+      this.fileGain = null;
+    }
+
     this.isPlaying = false;
+    this.playbackMode = null;
+    this.fileStartTime = 0;
+    this.filePauseTime = 0;
   }
 
   /**
    * Update volume in real-time
    */
   public setVolume(volume: number): void {
-    if (this.masterGain) {
-      this.masterGain.gain.setValueAtTime(volume / 100, this.audioContext!.currentTime);
+    if (this.audioContext) {
+      const vol = volume / 100;
+      if (this.masterGain) {
+        this.masterGain.gain.setValueAtTime(vol, this.audioContext.currentTime);
+      }
+      if (this.fileGain) {
+        this.fileGain.gain.setValueAtTime(vol, this.audioContext.currentTime);
+      }
     }
   }
 
