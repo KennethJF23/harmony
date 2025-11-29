@@ -7,6 +7,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, email, password, role, licenseNumber, institution } = body;
 
+    console.log('Registration attempt:', { name, email, role });
+
     // Validation
     if (!name || !email || !password || !role) {
       return NextResponse.json(
@@ -22,22 +24,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!['user', 'neurologist'].includes(role)) {
+    if (!['user', 'neuroscientist'].includes(role)) {
       return NextResponse.json(
         { error: 'Invalid role' },
         { status: 400 }
       );
     }
 
-    if (role === 'neurologist' && !licenseNumber) {
+    if (role === 'neuroscientist' && !licenseNumber) {
       return NextResponse.json(
-        { error: 'License number is required for neurologists' },
+        { error: 'License number is required for neuroscientists' },
         { status: 400 }
       );
     }
 
     // Connect to database
+    console.log('Connecting to database...');
     const { db } = await connectToDatabase();
+    console.log('Database connected');
+    
     const usersCollection = db.collection('users');
 
     // Check if user already exists
@@ -62,8 +67,8 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(),
     };
 
-    // Add neurologist-specific fields
-    if (role === 'neurologist') {
+    // Add neuroscientist-specific fields
+    if (role === 'neuroscientist') {
       userDocument.licenseNumber = licenseNumber;
       if (institution) {
         userDocument.institution = institution;
@@ -72,6 +77,8 @@ export async function POST(request: NextRequest) {
 
     // Insert user
     const result = await usersCollection.insertOne(userDocument);
+
+    console.log('User registered successfully:', result.insertedId);
 
     // Return success (without password)
     return NextResponse.json(
@@ -84,8 +91,9 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Registration error:', error);
+    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

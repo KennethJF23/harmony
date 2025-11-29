@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
-  const [userType, setUserType] = useState<'user' | 'neurologist'>('user');
+  const [userType, setUserType] = useState<'user' | 'neuroscientist'>('user');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -34,10 +34,11 @@ export default function LoginPage() {
       // Store token/session
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('userRole', data.role);
+      localStorage.setItem('userEmail', email);
 
       // Redirect based on role
-      if (data.role === 'neurologist') {
-        router.push('/dashboard/neurologist');
+      if (data.role === 'neuroscientist') {
+        router.push('/dashboard/neuroscientist');
       } else {
         router.push('/dashboard/user');
       }
@@ -164,14 +165,14 @@ export default function LoginPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setUserType('neurologist')}
+                onClick={() => setUserType('neuroscientist')}
                 className={`flex-1 py-3 rounded-xl font-medium transition-all duration-300 ${
-                  userType === 'neurologist'
+                  userType === 'neuroscientist'
                     ? 'bg-gradient-to-r from-[var(--wave)] to-[var(--accent)] text-white shadow-lg'
                     : 'text-[var(--foreground)]/60 hover:text-[var(--foreground)]'
                 }`}
               >
-                Neurologist
+                Neuroscientist
               </button>
             </div>
 
@@ -201,7 +202,7 @@ export default function LoginPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                   <div>
-                    <p className="text-sm font-medium text-[var(--foreground)]">Neurologist Dashboard</p>
+                    <p className="text-sm font-medium text-[var(--foreground)]">Neuroscientist Dashboard</p>
                     <p className="text-xs text-[var(--foreground)]/60 mt-1">
                       Access research data, view user reports, and analyze brain wave patterns
                     </p>
@@ -302,7 +303,7 @@ export default function LoginPage() {
                     <span>Signing in...</span>
                   </span>
                 ) : (
-                  `Sign in as ${userType === 'user' ? 'User' : 'Neurologist'}`
+                  `Sign in as ${userType === 'user' ? 'User' : 'Neuroscientist'}`
                 )}
               </motion.button>
             </form>

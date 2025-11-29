@@ -98,7 +98,7 @@ const Navbar = () => {
 
           {/* Profile/Login Button */}
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/sessions">
+            <Link href="/pricing">
               <motion.button
                 className="px-5 py-2 bg-gradient-to-r from-[#5b9eff] to-[#7c3aed] text-white rounded-lg font-medium shadow-lg shadow-[#5b9eff]/30"
                 whileHover={{ scale: 1.05, boxShadow: '0 8px 25px rgba(91, 158, 255, 0.4)' }}
@@ -157,7 +157,7 @@ const Navbar = () => {
                 );
               })}
               
-              <Link href="/sessions" onClick={() => setMobileMenuOpen(false)}>
+              <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
                 <motion.button
                   className="w-full px-5 py-3 bg-gradient-to-r from-[#5b9eff] to-[#7c3aed] text-white rounded-lg font-medium shadow-lg text-center"
                   initial={{ opacity: 0, y: 10 }}

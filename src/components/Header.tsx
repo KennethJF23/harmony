@@ -25,7 +25,7 @@ const Header = () => {
     { name: 'Home', href: '/' },
     { name: 'Science', href: '/#science' },
     { name: 'About', href: '/#about' },
-    { name: 'Neurologists', href: '/neurologists' },
+    { name: 'Neuroscientists', href: '/neurologists' },
     { name: 'Pricing', href: '/pricing' }
   ];
 
@@ -92,13 +92,13 @@ const Header = () => {
 
           {/* CTA Button */}
           <div className="hidden md:flex items-center space-x-4">
-            <motion.a
-              href="/sessions"
-              className="relative px-6 py-2 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full font-medium overflow-hidden group"
-              whileHover={{
-                scale: 1.03,
-                boxShadow: '0 8px 25px rgba(122, 162, 247, 0.25)',
-                transition: { type: 'spring', stiffness: 300, damping: 12 }
+            <motion.button
+              onClick={() => router.push('/pricing')}
+              className="hidden md:block px-6 py-2 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full font-medium relative overflow-hidden group cursor-pointer"
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: '0 8px 25px rgba(122, 162, 247, 0.4)',
+                transition: { type: 'spring', stiffness: 400, damping: 10 }
               }}
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0, x: 12 }}
@@ -111,7 +111,20 @@ const Header = () => {
                 className="absolute inset-0 bg-gradient-to-r from-[var(--wave)] to-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 style={{ borderRadius: 'inherit' }}
               />
-            </motion.a>
+              {/* Pulse effect */}
+              <motion.div
+                className="absolute inset-0 border-2 border-[var(--primary)] rounded-full opacity-0"
+                animate={{
+                  scale: [1, 1.5, 2],
+                  opacity: [0, 0.5, 0]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: [0.42, 0, 0.58, 1] as const
+                }}
+              />
+            </motion.button>
           </div>
 
           {/* Mobile menu button */}
@@ -169,7 +182,7 @@ const Header = () => {
                 </motion.a>
               ))}
               <motion.a
-                href="/player?track=Deep%20Focus%20Alpha&frequency=8-12%20Hz&duration=1500&category=focus"
+                href="/pricing"
                 onClick={() => setMobileMenuOpen(false)}
                 className="block w-full px-6 py-3 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full font-medium text-center"
                 initial={{ opacity: 0, y: 10 }}

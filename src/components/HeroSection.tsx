@@ -250,7 +250,7 @@ const HeroSection = () => {
           variants={itemVariants}
         >
           <motion.a
-            href="/sessions?track=Deep%20Focus%20Alpha&frequency=8-12%20Hz&duration=1500&category=focus"
+            href="/pricing"
             className="px-8 py-4 bg-gradient-to-r from-[#5b9eff] to-[#7c3aed] text-white rounded-lg font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-200 min-w-[180px] text-center"
             whileHover={{ scale: 1.03, y: -2 }}
             whileTap={{ scale: 0.98 }}

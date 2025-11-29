@@ -151,8 +151,34 @@ export const trackSession = (sessionData: SessionData): void => {
     }
     
     saveUserPreferences(preferences);
+    
+    // Also save to backend
+    saveSessionToBackend(sessionData).catch(err => {
+      console.error('Failed to save session to backend:', err);
+    });
   } catch (error) {
     console.error('Error tracking session:', error);
+  }
+};
+
+/**
+ * Save session to backend
+ */
+const saveSessionToBackend = async (sessionData: SessionData): Promise<void> => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    await fetch('/api/sessions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(sessionData),
+    });
+  } catch (error) {
+    console.error('Error saving to backend:', error);
   }
 };
 
