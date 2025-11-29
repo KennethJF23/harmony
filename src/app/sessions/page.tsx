@@ -6,11 +6,11 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Home, Music, LogOut } from 'lucide-react';
 import Footer from '@/components/Footer';
-import SyncedSession from '@/components/SyncedSession';
+import SoundPlayer from '@/components/player/SoundPlayer';
 import AIAssistant from '@/components/AIAssistant';
 import PWAInstaller from '@/components/PWAInstaller';
 import ScrollToTop from '@/components/ScrollToTop';
-import { motion } from 'framer-motion';
+import { FrequencyPresets } from '@/utils/audioEngine';
 
 function SessionsContent() {
   const searchParams = useSearchParams();
