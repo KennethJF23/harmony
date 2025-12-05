@@ -30,7 +30,6 @@ const UnifiedAudioPlayer = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [loopEnabled, setLoopEnabled] = useState(false);
-  const [visualizerMode, setVisualizerMode] = useState<'bars' | 'waveform' | 'circular'>('bars');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
@@ -446,26 +445,7 @@ const UnifiedAudioPlayer = ({
             audioEngine={audioEngineRef.current}
             isPlaying={isPlaying}
             category={currentTrack.category === 'deep' ? 'focus' : currentTrack.category === 'binaural' ? 'focus' : currentTrack.category === 'ambient' ? 'relaxation' : currentTrack.category}
-            mode={visualizerMode}
-            onModeChange={setVisualizerMode}
           />
-          
-          {/* Visualizer Mode Selector */}
-          <div className="flex justify-center gap-2 mt-4">
-            {(['bars', 'waveform', 'circular'] as const).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setVisualizerMode(mode)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  visualizerMode === mode
-                    ? 'bg-[var(--primary)] text-white'
-                    : 'bg-[var(--surface-alt)]/50 text-[var(--foreground)]/60 hover:text-[var(--foreground)]'
-                }`}
-              >
-                {mode.charAt(0).toUpperCase() + mode.slice(1)}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Progress Bar */}

@@ -46,7 +46,6 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({
   const [volume, setVolume] = useState(75);
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
-  const [visualizerMode, setVisualizerMode] = useState<'bars' | 'waveform' | 'circular'>('bars');
   const [loopEnabled, setLoopEnabled] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
@@ -455,33 +454,7 @@ const MusicPlayer = forwardRef<MusicPlayerRef, MusicPlayerProps>(({
               audioEngine={audioEngineRef.current} 
               isPlaying={isPlaying} 
               category={currentTrackData.category}
-              mode={visualizerMode}
-              onModeChange={setVisualizerMode}
             />
-            
-            {/* Visualizer Mode Switcher */}
-            <div className="flex items-center justify-center gap-2 mt-4" role="group" aria-label="Visualizer mode selector">
-              <span className="text-xs text-[var(--foreground)]/50 mr-2" id="visualizer-label">Visualizer:</span>
-              {(['bars', 'waveform', 'circular'] as const).map((modeOption) => (
-                <motion.button
-                  key={modeOption}
-                  onClick={() => setVisualizerMode(modeOption)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    visualizerMode === modeOption
-                      ? 'bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/30'
-                      : 'bg-[var(--surface-alt)]/50 text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-[var(--surface-alt)]'
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  aria-label={`${modeOption} visualizer mode`}
-                  aria-pressed={visualizerMode === modeOption}
-                  role="radio"
-                  aria-checked={visualizerMode === modeOption}
-                >
-                  {modeOption.charAt(0).toUpperCase() + modeOption.slice(1)}
-                </motion.button>
-              ))}
-            </div>
           </div>
 
           {/* Progress Bar */}

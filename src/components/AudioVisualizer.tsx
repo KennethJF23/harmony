@@ -8,8 +8,6 @@ interface AudioVisualizerProps {
   audioEngine: AudioEngine | null;
   isPlaying: boolean;
   category: 'focus' | 'relaxation' | 'creativity' | 'sleep';
-  mode?: 'bars' | 'waveform' | 'circular';
-  onModeChange?: (mode: 'bars' | 'waveform' | 'circular') => void;
 }
 
 const categoryColors = {
@@ -19,7 +17,7 @@ const categoryColors = {
   sleep: { primary: '#bb9af7', secondary: '#7aa2f7', glow: 'rgba(187, 154, 247, 0.5)' }
 };
 
-const AudioVisualizer = memo(({ audioEngine, isPlaying, category, mode = 'bars' }: AudioVisualizerProps) => {
+const AudioVisualizer = memo(({ audioEngine, isPlaying, category }: AudioVisualizerProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | undefined>(undefined);
 
@@ -50,109 +48,34 @@ const AudioVisualizer = memo(({ audioEngine, isPlaying, category, mode = 'bars' 
       if (isPlaying && audioEngine) {
         const colors = categoryColors[category];
         
-        if (mode === 'bars') {
-          // Frequency bars visualization
-          const frequencyData = audioEngine.getFrequencyData();
-          const bufferLength = frequencyData.length;
+        // Frequency bars visualization
+        const frequencyData = audioEngine.getFrequencyData();
+        const bufferLength = frequencyData.length;
+        
+        if (bufferLength > 0) {
+          const barWidth = width / bufferLength * 2.5;
           
-          if (bufferLength > 0) {
-            const barWidth = width / bufferLength * 2.5;
-            
-            for (let i = 0; i < bufferLength; i++) {
-              const barHeight = (frequencyData[i] / 255) * height * 0.8;
-              const x = i * barWidth;
-              const y = height - barHeight;
+          for (let i = 0; i < bufferLength; i++) {
+            const barHeight = (frequencyData[i] / 255) * height * 0.8;
+            const x = i * barWidth;
+            const y = height - barHeight;
 
-              // Create gradient for each bar
-              const gradient = ctx.createLinearGradient(x, y, x, height);
-              gradient.addColorStop(0, colors.primary);
-              gradient.addColorStop(1, colors.secondary);
-
-              ctx.fillStyle = gradient;
-              ctx.fillRect(x, y, barWidth - 2, barHeight);
-
-              // Add glow effect on higher frequencies
-              if (frequencyData[i] > 150) {
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = colors.glow;
-                ctx.fillRect(x, y, barWidth - 2, barHeight);
-                ctx.shadowBlur = 0;
-              }
-            }
-          }
-        } else if (mode === 'waveform') {
-          // Smooth waveform visualization
-          const timeDomain = audioEngine.getTimeDomainData();
-          ctx.beginPath();
-          ctx.lineWidth = 4;
-          
-          const gradient = ctx.createLinearGradient(0, 0, width, 0);
-          gradient.addColorStop(0, colors.primary);
-          gradient.addColorStop(0.5, colors.glow);
-          gradient.addColorStop(1, colors.secondary);
-          ctx.strokeStyle = gradient;
-          
-          const sliceWidth = width / timeDomain.length;
-          let x = 0;
-
-          for (let i = 0; i < timeDomain.length; i++) {
-            const v = timeDomain[i] / 128.0;
-            const y = (v * height) / 2;
-
-            if (i === 0) {
-              ctx.moveTo(x, y);
-            } else {
-              ctx.lineTo(x, y);
-            }
-
-            x += sliceWidth;
-          }
-          
-          ctx.stroke();
-          
-          // Add glow
-          ctx.shadowBlur = 20;
-          ctx.shadowColor = colors.glow;
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-        } else if (mode === 'circular') {
-          // Circular radial visualization
-          const frequencyData = audioEngine.getFrequencyData();
-          const centerX = width / 2;
-          const centerY = height / 2;
-          const radius = Math.min(width, height) * 0.3;
-          const bars = 64;
-          
-          for (let i = 0; i < bars; i++) {
-            const angle = (i / bars) * Math.PI * 2;
-            const amplitude = frequencyData[Math.floor(i * frequencyData.length / bars)] / 255;
-            const barHeight = amplitude * radius * 0.8;
-            
-            const x1 = centerX + Math.cos(angle) * radius;
-            const y1 = centerY + Math.sin(angle) * radius;
-            const x2 = centerX + Math.cos(angle) * (radius + barHeight);
-            const y2 = centerY + Math.sin(angle) * (radius + barHeight);
-            
-            const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+            // Create gradient for each bar
+            const gradient = ctx.createLinearGradient(x, y, x, height);
             gradient.addColorStop(0, colors.primary);
             gradient.addColorStop(1, colors.secondary);
-            
-            ctx.strokeStyle = gradient;
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.stroke();
-            
-            if (amplitude > 0.6) {
-              ctx.shadowBlur = 15;
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(x, y, barWidth - 2, barHeight);
+
+            // Add glow effect on higher frequencies
+            if (frequencyData[i] > 150) {
+              ctx.shadowBlur = 20;
               ctx.shadowColor = colors.glow;
-              ctx.stroke();
+              ctx.fillRect(x, y, barWidth - 2, barHeight);
               ctx.shadowBlur = 0;
             }
           }
-
-          ctx.stroke();
         }
       } else {
         // Idle animation when not playing
@@ -189,7 +112,7 @@ const AudioVisualizer = memo(({ audioEngine, isPlaying, category, mode = 'bars' 
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [audioEngine, isPlaying, category, mode]);
+  }, [audioEngine, isPlaying, category]);
 
   return (
     <motion.div
