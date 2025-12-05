@@ -42,7 +42,7 @@ A Next.js application that provides brainwave entrainment audio therapy for focu
    
    Edit `.env.local` with your MongoDB credentials:
    ```env
-   MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/harmony?retryWrites=true&w=majority
+   MONGO_URI=your_mongodb_connection_string_here
    MONGO_DB=harmony
    NODE_ENV=development
    ```
