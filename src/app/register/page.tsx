@@ -280,7 +280,7 @@ export default function RegisterPage() {
                           type="text"
                           value={formData.licenseNumber}
                           onChange={handleInputChange}
-                          required={userType === 'neurologist'}
+                          required={userType === 'neuroscientist'}
                           className="w-full px-4 py-3 bg-[var(--background)]/50 border border-[var(--primary)]/20 rounded-xl text-[var(--foreground)] placeholder-[var(--foreground)]/40 focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 transition-all"
                           placeholder="License #"
                         />
