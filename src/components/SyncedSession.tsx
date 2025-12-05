@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import UnifiedAudioPlayer from '@/components/UnifiedAudioPlayer';
 import FocusTimer from '@/components/FocusTimer';
+import SessionSurveyPopup, { SURVEY_QUESTIONS } from '@/components/SessionSurveyPopup';
 
 interface SyncedSessionProps {
   initialTrackId?: string;
@@ -18,6 +19,111 @@ const SyncedSession = ({ initialTrackId }: SyncedSessionProps) => {
   const [currentTrack, setCurrentTrack] = useState('');
   const [timerShouldStart, setTimerShouldStart] = useState(false);
   const [timerShouldStop, setTimerShouldStop] = useState(false);
+
+  // Survey state
+  const [showSurvey, setShowSurvey] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [askedQuestions, setAskedQuestions] = useState<number[]>([]);
+  const [surveyResponses, setSurveyResponses] = useState<Array<{
+    questionId: number;
+    question: string;
+    answer: string;
+    timestamp: number;
+    trackName: string;
+  }>>([]);
+  const [randomizedQuestions, setRandomizedQuestions] = useState<typeof SURVEY_QUESTIONS>([]);
+  const surveyIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const sessionStartTimeRef = useRef<number>(0);
+
+  // Initialize randomized questions on mount
+  useEffect(() => {
+    const shuffled = [...SURVEY_QUESTIONS].sort(() => Math.random() - 0.5);
+    setRandomizedQuestions(shuffled);
+  }, []);
+
+  // Survey timer: show question every 20 seconds when audio is playing
+  useEffect(() => {
+    console.log('Survey effect triggered:', { isAudioPlaying, randomizedQuestionsLength: randomizedQuestions.length, askedQuestionsLength: askedQuestions.length });
+    
+    if (isAudioPlaying && randomizedQuestions.length > 0) {
+      // Start session timer
+      if (sessionStartTimeRef.current === 0) {
+        sessionStartTimeRef.current = Date.now();
+        console.log('Session started at:', sessionStartTimeRef.current);
+      }
+
+      // Show first question after 20 seconds
+      console.log('Setting up survey interval...');
+      surveyIntervalRef.current = setInterval(() => {
+        console.log('Survey interval fired. Asked questions:', askedQuestions.length, 'Total questions:', randomizedQuestions.length);
+        if (askedQuestions.length < randomizedQuestions.length) {
+          console.log('Showing survey popup');
+          setShowSurvey(true);
+        } else {
+          // All questions asked, stop survey
+          console.log('All questions asked, stopping survey');
+          if (surveyIntervalRef.current) {
+            clearInterval(surveyIntervalRef.current);
+          }
+        }
+      }, 5000); // Every 5 seconds for testing (change to 20000 for production)
+
+      return () => {
+        console.log('Cleaning up survey interval');
+        if (surveyIntervalRef.current) {
+          clearInterval(surveyIntervalRef.current);
+        }
+      };
+    } else {
+      // Pause survey when audio stops
+      console.log('Audio not playing or no questions, clearing interval');
+      if (surveyIntervalRef.current) {
+        clearInterval(surveyIntervalRef.current);
+      }
+    }
+  }, [isAudioPlaying, askedQuestions.length, randomizedQuestions.length]);
+
+  const handleSurveyAnswer = useCallback(async (questionId: number, answer: string) => {
+    const question = SURVEY_QUESTIONS.find(q => q.id === questionId);
+    if (!question) return;
+
+    const response = {
+      questionId,
+      question: question.question,
+      answer,
+      timestamp: Date.now() - sessionStartTimeRef.current,
+      trackName: currentTrack,
+    };
+
+    setSurveyResponses(prev => [...prev, response]);
+    setAskedQuestions(prev => [...prev, questionId]);
+    setShowSurvey(false);
+    setCurrentQuestionIndex(prev => prev + 1);
+
+    // Save to backend
+    try {
+      const userEmail = localStorage.getItem('userEmail');
+      await fetch('/api/survey/responses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userEmail,
+          sessionId: `session_${sessionStartTimeRef.current}`,
+          ...response,
+          category: question.category,
+          questionType: question.type,
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to save survey response:', error);
+    }
+  }, [currentTrack]);
+
+  const handleSurveySkip = useCallback(() => {
+    setAskedQuestions(prev => [...prev, randomizedQuestions[currentQuestionIndex]?.id]);
+    setShowSurvey(false);
+    setCurrentQuestionIndex(prev => prev + 1);
+  }, [currentQuestionIndex, randomizedQuestions]);
 
   // Handle audio play state changes
   const handleAudioPlayStateChange = useCallback((playing: boolean) => {
@@ -60,6 +166,22 @@ const SyncedSession = ({ initialTrackId }: SyncedSessionProps) => {
 
   return (
     <div className="space-y-8">
+      {/* Debug Test Button */}
+      <div className="text-center">
+        <button
+          onClick={() => {
+            console.log('Test button clicked');
+            setShowSurvey(true);
+          }}
+          className="px-4 py-2 bg-[#5b9eff] text-white rounded-lg font-medium hover:bg-[#4a8eef] transition-colors"
+        >
+          Test Survey Popup
+        </button>
+        <p className="text-xs text-[#7aa2f7] mt-2">
+          Audio playing: {isAudioPlaying ? 'Yes' : 'No'}
+        </p>
+      </div>
+
       {/* Sync Status Indicator */}
       {isAudioPlaying && (
         <motion.div
@@ -209,6 +331,16 @@ const SyncedSession = ({ initialTrackId }: SyncedSessionProps) => {
           </p>
         </div>
       </motion.div>
+
+      {/* Survey Popup */}
+      <SessionSurveyPopup
+        isVisible={showSurvey}
+        currentQuestion={randomizedQuestions[currentQuestionIndex] || null}
+        onAnswer={handleSurveyAnswer}
+        onSkip={handleSurveySkip}
+        questionNumber={askedQuestions.length + 1}
+        totalQuestions={randomizedQuestions.length}
+      />
     </div>
   );
 };

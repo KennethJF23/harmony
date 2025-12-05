@@ -58,6 +58,34 @@ interface DashboardData {
     action: string;
     timestamp: string;
   }[];
+  surveyAnalytics?: {
+    totalResponses: number;
+    avgResponseRate: number;
+    categoryBreakdown: {
+      category: string;
+      responseCount: number;
+      positiveRate: number;
+    }[];
+    topInsights: {
+      question: string;
+      mostCommonAnswer: string;
+      percentage: number;
+    }[];
+    neuralEffectiveness: {
+      metric: string;
+      avgScore: number;
+      trend: string;
+    }[];
+  };
+  surveyQuestionsSummary?: {
+    questionId: number;
+    question: string;
+    totalResponses: number;
+    topAnswer: {
+      answer: string;
+      count: number;
+    };
+  }[];
 }
 
 export default function NeuroscientistDashboard() {
@@ -75,6 +103,12 @@ export default function NeuroscientistDashboard() {
     if (!token || role !== 'neuroscientist') {
       router.push('/login');
       return;
+    }
+
+    // Prefer logged-in identity from localStorage to label Dr. name
+    const storedName = localStorage.getItem('userName') || localStorage.getItem('userEmail');
+    if (storedName) {
+      setScientistName(storedName);
     }
 
     fetchDashboardData();
@@ -95,7 +129,10 @@ export default function NeuroscientistDashboard() {
 
       const data = await response.json();
       setDashboardData(data);
-      setScientistName(data.scientistName || 'Neuroscientist');
+      // If API provides a scientistName, use it; else keep local user identity
+      if (data.scientistName) {
+        setScientistName(data.scientistName);
+      }
     } catch (error) {
       console.error('Error fetching dashboard:', error);
       setDashboardData(getMockData());
@@ -562,6 +599,184 @@ export default function NeuroscientistDashboard() {
             </div>
           </motion.div>
         </div>
+
+        {/* Survey Analytics Section */}
+        {dashboardData?.surveyAnalytics && (
+          <motion.div
+            className="bg-gradient-to-br from-[#1e2642]/90 to-[#2a3254]/90 rounded-2xl p-6 border border-[#5b9eff]/20"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.85 }}
+          >
+            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+              <Brain className="w-5 h-5 text-[#5b9eff]" />
+              Neural Feedback Survey Analytics
+            </h2>
+
+            {/* Survey Overview Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-[#1a1f35]/50 rounded-lg p-4 border border-[#5b9eff]/20">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-[#a9b1d6]">Total Responses</span>
+                  <FileText className="w-4 h-4 text-[#5b9eff]" />
+                </div>
+                <div className="text-2xl font-bold text-white">
+                  {dashboardData.surveyAnalytics.totalResponses.toLocaleString()}
+                </div>
+              </div>
+
+              <div className="bg-[#1a1f35]/50 rounded-lg p-4 border border-[#10b981]/20">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-[#a9b1d6]">Avg Response Rate</span>
+                  <Activity className="w-4 h-4 text-[#10b981]" />
+                </div>
+                <div className="text-2xl font-bold text-white">
+                  {dashboardData.surveyAnalytics.avgResponseRate}%
+                </div>
+              </div>
+
+              <div className="bg-[#1a1f35]/50 rounded-lg p-4 border border-[#f59e0b]/20">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-[#a9b1d6]">Categories Tracked</span>
+                  <PieChart className="w-4 h-4 text-[#f59e0b]" />
+                </div>
+                <div className="text-2xl font-bold text-white">
+                  {dashboardData.surveyAnalytics.categoryBreakdown.length}
+                </div>
+              </div>
+            </div>
+
+            {/* Category Breakdown */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Response by Category</h3>
+              <div className="space-y-3">
+                {dashboardData.surveyAnalytics.categoryBreakdown.map((cat, index) => (
+                  <motion.div
+                    key={cat.category}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.9 + index * 0.1 }}
+                    className="bg-[#1a1f35]/50 rounded-lg p-4 border border-[#5b9eff]/10"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-white capitalize">
+                        {cat.category.replace('_', ' ')}
+                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-[#a9b1d6]">
+                          {cat.responseCount} responses
+                        </span>
+                        <span className="text-sm font-semibold text-[#10b981]">
+                          {cat.positiveRate}% positive
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-full h-2 bg-[#1a1f35] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-[#5b9eff] to-[#10b981]"
+                        style={{ width: `${cat.positiveRate}%` }}
+                      />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Top Insights */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Key User Insights</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {dashboardData.surveyAnalytics.topInsights.map((insight, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 1.1 + index * 0.1 }}
+                    className="bg-[#1a1f35]/50 rounded-lg p-4 border border-[#7c3aed]/20"
+                  >
+                    <div className="text-xs text-[#a9b1d6] mb-2">{insight.question}</div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm font-semibold text-white">
+                        {insight.mostCommonAnswer}
+                      </div>
+                      <div className="text-lg font-bold text-[#7c3aed]">
+                        {insight.percentage}%
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Neural Effectiveness Metrics */}
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-4">Neural Effectiveness Metrics</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {dashboardData.surveyAnalytics.neuralEffectiveness.map((metric, index) => (
+                  <motion.div
+                    key={metric.metric}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.3 + index * 0.1 }}
+                    className="bg-[#1a1f35]/50 rounded-lg p-4 border border-[#5b9eff]/20"
+                  >
+                    <div className="text-xs text-[#a9b1d6] mb-1">{metric.metric}</div>
+                    <div className="flex items-end gap-2 mb-2">
+                      <div className="text-2xl font-bold text-white">
+                        {metric.avgScore.toFixed(1)}
+                      </div>
+                      <div className={`text-sm font-medium mb-1 ${
+                        metric.trend === 'up' ? 'text-[#10b981]' : 
+                        metric.trend === 'down' ? 'text-[#ef4444]' : 
+                        'text-[#a9b1d6]'
+                      }`}>
+                        {metric.trend === 'up' ? '↑' : metric.trend === 'down' ? '↓' : '→'}
+                      </div>
+                    </div>
+                    <div className="w-full h-1.5 bg-[#1a1f35] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-[#5b9eff] to-[#7c3aed]"
+                        style={{ width: `${(metric.avgScore / 10) * 100}%` }}
+                      />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Per-Question Response Summary */}
+            {dashboardData.surveyQuestionsSummary && dashboardData.surveyQuestionsSummary.length > 0 && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold text-white mb-4">Question Response Counts</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {dashboardData.surveyQuestionsSummary.slice(0, 10).map((q) => (
+                    <div key={q.questionId} className="bg-[#1a1f35]/50 rounded-lg p-4 border border-[#5b9eff]/10">
+                      <div className="text-xs text-[#7aa2f7]/60 mb-1">Q{q.questionId}</div>
+                      <div className="text-sm font-medium text-white mb-2">{q.question}</div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-[#a9b1d6]">Responses</span>
+                        <span className="text-sm font-bold text-[#5b9eff]">{q.totalResponses}</span>
+                      </div>
+                      <div className="mt-2 text-xs text-[#a9b1d6]">Top answer: <span className="text-white font-medium">{q.topAnswer.answer}</span> ({q.topAnswer.count})</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Export Button */}
+            <div className="mt-6 flex justify-end">
+              <motion.button
+                className="py-3 px-6 bg-gradient-to-r from-[#5b9eff] to-[#7c3aed] text-white rounded-lg font-medium flex items-center gap-2 hover:opacity-90 transition-opacity"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Download className="w-4 h-4" />
+                <span>Export Survey Data</span>
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
 
         {/* User Retention */}
         <motion.div

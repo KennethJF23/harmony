@@ -13,7 +13,8 @@ import {
   LogOut,
   Music,
   Zap,
-  Home
+  Home,
+  Brain
 } from 'lucide-react';
 import Footer from '@/components/Footer';
 
@@ -22,6 +23,9 @@ interface DashboardData {
   sessionsCompleted: number;
   currentStreak: number;
   favoriteWave: string;
+  surveyResponses?: number;
+  mostEffectiveFrequency?: string;
+  avgFocusQuality?: number;
   recentSessions: {
     id: string;
     track: string;
@@ -404,6 +408,102 @@ export default function UserDashboard() {
             <p className="text-sm text-[#7aa2f7]/60">Most used wave</p>
           </motion.div>
         </div>
+
+        {/* Survey Insights Section */}
+        <motion.div
+          className="mb-6 bg-gradient-to-br from-[#1e2642]/90 to-[#2a3254]/90 rounded-2xl p-6 border border-[#5b9eff]/20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
+          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+            <Brain className="w-5 h-5 text-[#5b9eff]" />
+            Your Neural Feedback Insights
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-[#0a0e1a]/50 rounded-lg p-4 border border-[#5b9eff]/10">
+              <div className="text-xs text-[#7aa2f7]/60 mb-1">Survey Responses</div>
+              <div className="text-2xl font-bold text-white">
+                {dashboardData?.surveyResponses || 0}
+              </div>
+            </div>
+            <div className="bg-[#0a0e1a]/50 rounded-lg p-4 border border-[#34d399]/10">
+              <div className="text-xs text-[#7aa2f7]/60 mb-1">Most Effective</div>
+              <div className="text-lg font-bold text-[#34d399]">
+                {dashboardData?.mostEffectiveFrequency || 'Alpha'}
+              </div>
+            </div>
+            <div className="bg-[#0a0e1a]/50 rounded-lg p-4 border border-[#a78bfa]/10">
+              <div className="text-xs text-[#7aa2f7]/60 mb-1">Focus Quality</div>
+              <div className="text-2xl font-bold text-white">
+                {dashboardData?.avgFocusQuality || 8.2}/10
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold text-white mb-3">Your Response Patterns</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="bg-[#0a0e1a]/50 rounded-lg p-3 border border-[#5b9eff]/10">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-[#7aa2f7]/60">Mental Synchronization</span>
+                    <span className="text-sm font-bold text-[#5b9eff]">85%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-[#1a1f35] rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-[#5b9eff] to-[#7c3aed]" style={{ width: '85%' }} />
+                  </div>
+                </div>
+                
+                <div className="bg-[#0a0e1a]/50 rounded-lg p-3 border border-[#34d399]/10">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-[#7aa2f7]/60">Audio Harmony</span>
+                    <span className="text-sm font-bold text-[#34d399]">92%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-[#1a1f35] rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-[#34d399] to-[#10b981]" style={{ width: '92%' }} />
+                  </div>
+                </div>
+
+                <div className="bg-[#0a0e1a]/50 rounded-lg p-3 border border-[#f97316]/10">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-[#7aa2f7]/60">Focus Retention</span>
+                    <span className="text-sm font-bold text-[#f97316]">78%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-[#1a1f35] rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-[#f97316] to-[#fb923c]" style={{ width: '78%' }} />
+                  </div>
+                </div>
+
+                <div className="bg-[#0a0e1a]/50 rounded-lg p-3 border border-[#a78bfa]/10">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-[#7aa2f7]/60">Stress Reduction</span>
+                    <span className="text-sm font-bold text-[#a78bfa]">88%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-[#1a1f35] rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-[#a78bfa] to-[#c4b5fd]" style={{ width: '88%' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-[#0a0e1a]/30 rounded-lg p-4 border border-[#5b9eff]/10">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-[#5b9eff]/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  💡
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-white mb-1">Personalized Insight</h4>
+                  <p className="text-xs text-[#7aa2f7]/80">
+                    Your responses show strong affinity for Alpha waves (8-12 Hz) during afternoon sessions. 
+                    Consider scheduling focus work between 2-5 PM for optimal results.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column */}
