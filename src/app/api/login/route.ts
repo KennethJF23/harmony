@@ -102,6 +102,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user has a password (some users created in dev mode might not)
+    if (!user.password) {
+      return NextResponse.json(
+        { error: 'Account not properly configured. Please register again.' },
+        { status: 401 }
+      );
+    }
+
     // Verify password
     const isValidPassword = await verifyPassword(password, user.password);
     
