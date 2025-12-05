@@ -94,6 +94,9 @@ export default function NeuroscientistDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [scientistName, setScientistName] = useState('Neuroscientist');
   const [selectedTimeRange, setSelectedTimeRange] = useState('7d');
+  const [report, setReport] = useState<any | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState('');
 
   useEffect(() => {
     // Check authentication
@@ -128,11 +131,25 @@ export default function NeuroscientistDashboard() {
       }
 
       const data = await response.json();
+
+      // Use backend data only for totals; no local storage fallback
+
       setDashboardData(data);
       // If API provides a scientistName, use it; else keep local user identity
       if (data.scientistName) {
         setScientistName(data.scientistName);
       }
+
+      // Fetch neuroscience ML report
+      const reportRes = await fetch(`/api/reports/neuroscience?timeRange=${selectedTimeRange}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (reportRes.ok) {
+        const rpt = await reportRes.json();
+        setReport(rpt);
+      }
+      
+      console.log('Dashboard data loaded:', { totalUsers: data.totalUsers, totalSessions: data.totalSessions });
     } catch (error) {
       console.error('Error fetching dashboard:', error);
       setDashboardData(getMockData());
@@ -205,6 +222,72 @@ export default function NeuroscientistDashboard() {
     link.click();
   };
 
+  const handleGenerateNeuroscienceReport = async () => {
+    setIsGenerating(true);
+    setGenerateError('');
+    
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        setGenerateError('Not authenticated');
+        return;
+      }
+
+      // Fetch comprehensive neuroscience analysis with AI
+      const res = await fetch('/api/reports/neuroscience/pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ 
+          timeRange: selectedTimeRange,
+          includeDashboardData: true 
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.text();
+        setGenerateError(`Failed to generate report: ${error}`);
+        return;
+      }
+
+      // Get the HTML content
+      const htmlContent = await res.text();
+      
+      // Create a new window with the report for printing
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        
+        // Wait for content to load, then trigger print dialog
+        printWindow.onload = () => {
+          setTimeout(() => {
+            printWindow.print();
+          }, 250);
+        };
+      } else {
+        // Fallback: download as HTML file
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `neuroscience-report-${new Date().toISOString().split('T')[0]}.html`;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+      
+      setGenerateError('✓ Report generated - Save as PDF via Print dialog');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      setGenerateError(`Error: ${msg}`);
+      console.error('Generate PDF report error:', err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const formatTimeAgo = (timestamp: string) => {
     const seconds = Math.floor((Date.now() - new Date(timestamp).getTime()) / 1000);
     if (seconds < 60) return `${seconds}s ago`;
@@ -250,17 +333,6 @@ export default function NeuroscientistDashboard() {
                 >
                   <Home className="w-4 h-4" />
                   <span className="font-medium">Dashboard</span>
-                </motion.div>
-              </Link>
-              
-              <Link href="/dashboard/neuroscientist/users">
-                <motion.div
-                  className="px-4 py-2 rounded-lg flex items-center gap-2 text-[#a9b1d6] hover:text-[#5b9eff] hover:bg-[#5b9eff]/10"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Users className="w-4 h-4" />
-                  <span className="font-medium">Users</span>
                 </motion.div>
               </Link>
             </div>
@@ -312,6 +384,17 @@ export default function NeuroscientistDashboard() {
             </select>
             
             <motion.button
+              onClick={handleGenerateNeuroscienceReport}
+              disabled={isGenerating}
+              className="px-4 py-2 bg-gradient-to-r from-[#7c3aed]/20 to-[#5b9eff]/20 hover:from-[#7c3aed]/30 hover:to-[#5b9eff]/30 text-[#7c3aed] rounded-lg text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-[#7c3aed]/30"
+              whileHover={{ scale: isGenerating ? 1 : 1.02 }}
+              whileTap={{ scale: isGenerating ? 1 : 0.98 }}
+            >
+              <FileText className="w-4 h-4" />
+              {isGenerating ? 'Generating PDF...' : 'Generate AI Report'}
+            </motion.button>
+            
+            <motion.button
               onClick={handleExportData}
               className="px-4 py-2 bg-[#5b9eff]/20 hover:bg-[#5b9eff]/30 text-[#5b9eff] rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
               whileHover={{ scale: 1.02 }}
@@ -322,6 +405,20 @@ export default function NeuroscientistDashboard() {
             </motion.button>
           </div>
         </motion.div>
+        
+        {generateError && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`mb-4 p-3 rounded-lg text-sm ${
+              generateError.startsWith('✓') 
+                ? 'bg-green-500/10 text-green-400 border border-green-500/20' 
+                : 'bg-red-500/10 text-red-400 border border-red-500/20'
+            }`}
+          >
+            {generateError}
+          </motion.div>
+        )}
 
         {/* Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -393,6 +490,146 @@ export default function NeuroscientistDashboard() {
             <p className="text-sm text-[#34d399]">+2.3% vs last week</p>
           </motion.div>
         </div>
+
+        {/* Neuroscience Report */}
+        <motion.div
+          className="bg-gradient-to-br from-[#1e2642]/90 to-[#2a3254]/90 rounded-2xl p-6 border border-[#5b9eff]/20 mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-[#5b9eff]" />
+            General Neuroscience Report (XGBoost)
+          </h2>
+          <div className="flex justify-end mb-4 items-center gap-2">
+            <motion.button
+              onClick={(e) => {
+                console.log('=== GENERATE REPORT BUTTON CLICKED ===');
+                console.log('Event:', e);
+                console.log('Current report state:', report);
+                console.log('Selected time range:', selectedTimeRange);
+                
+                (async () => {
+                  setGenerateError('');
+                  setIsGenerating(true);
+                  try {
+                    const token = localStorage.getItem('authToken');
+                    console.log('Token:', token ? `exists (${token.substring(0, 20)}...)` : 'MISSING');
+                    
+                    const url = '/api/reports/neuroscience';
+                    const body = JSON.stringify({ timeRange: selectedTimeRange });
+                    console.log('Fetching:', url, 'with body:', body);
+                    
+                    const res = await fetch(url, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                      },
+                      body,
+                    });
+                    console.log('Response status:', res.status, res.statusText);
+                    const text = await res.text();
+                    console.log('Response text:', text);
+                    
+                    if (!res.ok) {
+                      setGenerateError(`Failed: ${res.status}`);
+                      console.error('Request failed');
+                    } else {
+                      const analysis = JSON.parse(text);
+                      console.log('Parsed analysis:', analysis);
+                      setReport({
+                        period: analysis.period,
+                        totals: analysis.totals,
+                        feedback: analysis.feedback,
+                        ml: analysis.ai,
+                      });
+                      setGenerateError('✓ Report generated');
+                      console.log('Report state updated');
+                    }
+                  } catch (err) {
+                    const msg = err instanceof Error ? err.message : 'Unknown error';
+                    setGenerateError(`Error: ${msg}`);
+                    console.error('Generate report exception:', err);
+                  } finally {
+                    setIsGenerating(false);
+                    console.log('=== GENERATE REPORT FINISHED ===');
+                  }
+                })();
+              }}
+              disabled={isGenerating}
+              className="px-4 py-2 bg-[#5b9eff]/20 hover:bg-[#5b9eff]/30 text-[#5b9eff] rounded-lg text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50 cursor-pointer"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {isGenerating ? 'Generating…' : 'Generate Report'}
+            </motion.button>
+            {generateError && <span className={`text-xs ${generateError.startsWith('✓') ? 'text-green-400' : 'text-red-400'}`}>{generateError}</span>}
+          </div>
+          
+          {report ? (
+            <div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-[#1a1f35]/50 rounded-lg p-4 border border-[#5b9eff]/20">
+                <div className="text-xs text-[#a9b1d6]">Total Listening</div>
+                <div className="text-2xl font-bold text-white">{report.totals.totalListeningMinutes} min</div>
+                <div className="text-xs text-[#7aa2f7]/60">Users: {report.totals.users}</div>
+              </div>
+              <div className="bg-[#1a1f35]/50 rounded-lg p-4 border border-[#10b981]/20">
+                <div className="text-xs text-[#a9b1d6]">Avg per User</div>
+                <div className="text-2xl font-bold text-white">{report.totals.avgListeningPerUser} min</div>
+                <div className="text-xs text-[#7aa2f7]/60">Sessions: {report.totals.sessions}</div>
+              </div>
+              <div className="bg-[#1a1f35]/50 rounded-lg p-4 border border-[#f59e0b]/20">
+                <div className="text-xs text-[#a9b1d6]">Positive Rate</div>
+                <div className="text-2xl font-bold text-white">{report.totals.positiveRate}%</div>
+                <div className="text-xs text-[#7aa2f7]/60">Survey: {report.totals.surveyResponses}</div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-3">Top Questions</h3>
+                <div className="space-y-3">
+                  {report.feedback.topQuestions.map((q: any) => (
+                    <div key={q.question} className="p-4 bg-[#1a1f35]/50 rounded-lg border border-[#5b9eff]/10">
+                      <div className="text-sm text-white mb-1">{q.question}</div>
+                      <div className="text-xs text-[#a9b1d6] flex justify-between">
+                        <span>Responses: {q.totalResponses}</span>
+                        <span>Top: {q.topAnswer.answer} ({q.topAnswer.count})</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-3">Categories</h3>
+                <div className="space-y-3">
+                  {report.feedback.categories.map((c: any) => (
+                    <div key={c.category} className="p-4 bg-[#1a1f35]/50 rounded-lg border border-[#5b9eff]/10 flex items-center justify-between">
+                      <span className="text-sm text-white capitalize">{c.category.replace('_', ' ')}</span>
+                      <span className="text-sm text-[#5b9eff] font-semibold">{c.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 p-4 bg-[#0a0e1a]/50 rounded-lg border border-[#7c3aed]/20">
+              <div className="text-xs text-[#a9b1d6] mb-1">Model</div>
+              <div className="text-sm text-white">{report.ml.model} ({report.ml.status})</div>
+              <div className="text-sm text-[#7c3aed] font-bold mt-1">Engagement Score: {report.ml.engagementScore}</div>
+              <div className="text-xs text-[#a9b1d6] mt-1">{report.ml.notes}</div>
+            </div>
+            </div>
+          ) : (
+            <div className="text-center text-[#a9b1d6] py-4">
+              Click "Generate Report" to analyze neuroscience data with AI
+            </div>
+          )}
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Frequency Usage Analytics */}
@@ -545,57 +782,6 @@ export default function NeuroscientistDashboard() {
                   </div>
                 </motion.div>
               ))}
-            </div>
-          </motion.div>
-
-          {/* Research Tools */}
-          <motion.div
-            className="bg-gradient-to-br from-[#1e2642]/90 to-[#2a3254]/90 rounded-2xl p-6 border border-[#5b9eff]/20"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.8 }}
-          >
-            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-[#34d399]" />
-              Research Tools
-            </h2>
-            <div className="space-y-3">
-              <motion.button
-                className="w-full py-3 px-4 bg-[#5b9eff]/20 hover:bg-[#5b9eff]/30 text-[#5b9eff] rounded-lg text-sm font-medium flex items-center justify-between transition-colors"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <span>Generate Report</span>
-                <FileText className="w-4 h-4" />
-              </motion.button>
-              
-              <motion.button
-                onClick={handleExportData}
-                className="w-full py-3 px-4 bg-[#34d399]/20 hover:bg-[#34d399]/30 text-[#34d399] rounded-lg text-sm font-medium flex items-center justify-between transition-colors"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <span>Export Raw Data</span>
-                <Download className="w-4 h-4" />
-              </motion.button>
-              
-              <motion.button
-                className="w-full py-3 px-4 bg-[#a78bfa]/20 hover:bg-[#a78bfa]/30 text-[#a78bfa] rounded-lg text-sm font-medium flex items-center justify-between transition-colors"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <span>View Patterns</span>
-                <BarChart3 className="w-4 h-4" />
-              </motion.button>
-              
-              <motion.button
-                className="w-full py-3 px-4 bg-[#f97316]/20 hover:bg-[#f97316]/30 text-[#f97316] rounded-lg text-sm font-medium flex items-center justify-between transition-colors"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <span>User Insights</span>
-                <Users className="w-4 h-4" />
-              </motion.button>
             </div>
           </motion.div>
         </div>

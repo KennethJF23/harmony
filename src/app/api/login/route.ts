@@ -22,28 +22,70 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Mock authentication for development (bypasses MongoDB)
+    // Mock authentication for development: also upsert user in MongoDB so dashboards can count users
     if (process.env.NODE_ENV === 'development') {
       const token = `mock-token-${Date.now()}`;
-      
-      return NextResponse.json(
-        {
-          success: true,
-          token,
-          role: role,
-          user: {
-            id: 'mock-user-id',
-            name: email.split('@')[0],
-            email: email,
-            role: role,
-            ...(role === 'neuroscientist' && {
-              licenseNumber: 'MOCK-12345',
-              institution: 'Development Hospital',
-            }),
+
+      try {
+        const { db } = await connectToDatabase();
+        const usersCollection = db.collection('users');
+        await usersCollection.updateOne(
+          { email, role },
+          {
+            $set: {
+              name: email.split('@')[0],
+              email,
+              role,
+              lastLogin: new Date(),
+              sessionToken: token,
+            },
+            $setOnInsert: { createdAt: new Date() },
           },
-        },
-        { status: 200 }
-      );
+          { upsert: true }
+        );
+
+        const saved = await usersCollection.findOne({ email, role });
+
+        return NextResponse.json(
+          {
+            success: true,
+            token,
+            role: role,
+            user: {
+              id: saved?._id ?? 'mock-user-id',
+              name: saved?.name ?? email.split('@')[0],
+              email: saved?.email ?? email,
+              role: saved?.role ?? role,
+              ...(role === 'neuroscientist' && {
+                licenseNumber: 'MOCK-12345',
+                institution: 'Development Hospital',
+              }),
+            },
+          },
+          { status: 200 }
+        );
+      } catch (e) {
+        console.warn('Dev upsert user failed:', e);
+        // Fallback response without DB persistence
+        return NextResponse.json(
+          {
+            success: true,
+            token,
+            role: role,
+            user: {
+              id: 'mock-user-id',
+              name: email.split('@')[0],
+              email,
+              role,
+              ...(role === 'neuroscientist' && {
+                licenseNumber: 'MOCK-12345',
+                institution: 'Development Hospital',
+              }),
+            },
+          },
+          { status: 200 }
+        );
+      }
     }
 
     // Production: Connect to database

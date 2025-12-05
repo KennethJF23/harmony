@@ -34,11 +34,13 @@ const SyncedSession = ({ initialTrackId }: SyncedSessionProps) => {
   const [randomizedQuestions, setRandomizedQuestions] = useState<typeof SURVEY_QUESTIONS>([]);
   const surveyIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const sessionStartTimeRef = useRef<number>(0);
+  const MAX_QUESTIONS_PER_SESSION = 3;
 
   // Initialize randomized questions on mount
   useEffect(() => {
     const shuffled = [...SURVEY_QUESTIONS].sort(() => Math.random() - 0.5);
-    setRandomizedQuestions(shuffled);
+    // Limit to max questions per session
+    setRandomizedQuestions(shuffled.slice(0, MAX_QUESTIONS_PER_SESSION));
   }, []);
 
   // Survey timer: show question every 20 seconds when audio is playing
@@ -66,7 +68,7 @@ const SyncedSession = ({ initialTrackId }: SyncedSessionProps) => {
             clearInterval(surveyIntervalRef.current);
           }
         }
-      }, 5000); // Every 5 seconds for testing (change to 20000 for production)
+      }, 20000); // Every 20 seconds during playback
 
       return () => {
         console.log('Cleaning up survey interval');
@@ -142,7 +144,13 @@ const SyncedSession = ({ initialTrackId }: SyncedSessionProps) => {
 
   // Handle track changes
   const handleTrackChange = useCallback((trackName: string) => {
+    // Reset per-track survey state
     setCurrentTrack(trackName);
+    setAskedQuestions([]);
+    setCurrentQuestionIndex(0);
+    // Re-randomize and cap to MAX_QUESTIONS_PER_SESSION for the new track
+    const shuffled = [...SURVEY_QUESTIONS].sort(() => Math.random() - 0.5);
+    setRandomizedQuestions(shuffled.slice(0, MAX_QUESTIONS_PER_SESSION));
   }, []);
 
   // Handle timer completion
@@ -166,22 +174,6 @@ const SyncedSession = ({ initialTrackId }: SyncedSessionProps) => {
 
   return (
     <div className="space-y-8">
-      {/* Debug Test Button */}
-      <div className="text-center">
-        <button
-          onClick={() => {
-            console.log('Test button clicked');
-            setShowSurvey(true);
-          }}
-          className="px-4 py-2 bg-[#5b9eff] text-white rounded-lg font-medium hover:bg-[#4a8eef] transition-colors"
-        >
-          Test Survey Popup
-        </button>
-        <p className="text-xs text-[#7aa2f7] mt-2">
-          Audio playing: {isAudioPlaying ? 'Yes' : 'No'}
-        </p>
-      </div>
-
       {/* Sync Status Indicator */}
       {isAudioPlaying && (
         <motion.div
@@ -338,8 +330,8 @@ const SyncedSession = ({ initialTrackId }: SyncedSessionProps) => {
         currentQuestion={randomizedQuestions[currentQuestionIndex] || null}
         onAnswer={handleSurveyAnswer}
         onSkip={handleSurveySkip}
-        questionNumber={askedQuestions.length + 1}
-        totalQuestions={randomizedQuestions.length}
+        questionNumber={Math.min(askedQuestions.length + 1, MAX_QUESTIONS_PER_SESSION)}
+        totalQuestions={MAX_QUESTIONS_PER_SESSION}
       />
     </div>
   );

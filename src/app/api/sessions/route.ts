@@ -24,10 +24,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Skip saving to DB in development with mock tokens
-    if (process.env.NODE_ENV === 'development' && token.startsWith('mock-token')) {
-      return NextResponse.json({ success: true, message: 'Session tracked (mock)' });
-    }
+    // In development, we still persist sessions using mock tokens (user is upserted in dev login route)
 
     const { db } = await connectToDatabase();
     

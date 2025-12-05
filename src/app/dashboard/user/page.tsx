@@ -19,7 +19,7 @@ import {
 import Footer from '@/components/Footer';
 
 interface DashboardData {
-  totalHours: number;
+  totalMinutes: number;
   sessionsCompleted: number;
   currentStreak: number;
   favoriteWave: string;
@@ -66,6 +66,18 @@ export default function UserDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [userName, setUserName] = useState('User');
 
+  // Refresh data when window regains focus
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchDashboardData();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   useEffect(() => {
     // Check authentication
     const token = localStorage.getItem('authToken');
@@ -77,6 +89,13 @@ export default function UserDashboard() {
     }
 
     fetchDashboardData();
+    
+    // Auto-refresh dashboard every 30 seconds
+    const refreshInterval = setInterval(() => {
+      fetchDashboardData();
+    }, 30000);
+    
+    return () => clearInterval(refreshInterval);
   }, [router]);
 
   const fetchDashboardData = async () => {
@@ -90,12 +109,65 @@ export default function UserDashboard() {
         ? JSON.parse(localStorage.getItem('harmony_user_stats') || '{}')
         : {};
       
+      const userEmail = localStorage.getItem('userEmail');
+      
       const sessionHistory = preferences.sessionHistory || [];
       const completedSessions = sessionHistory.filter((s: any) => s.completed);
       
+      console.log('=== Session History Debug ===');
+      console.log('Total sessions in history:', sessionHistory.length);
+      console.log('Completed sessions:', completedSessions.length);
+      console.log('All sessions:', sessionHistory.map((s: any) => ({
+        track: s.trackName,
+        timestamp: s.timestamp,
+        timestampDate: new Date(s.timestamp).toLocaleString(),
+        duration: s.duration,
+        completed: s.completed
+      })));
+      console.log('============================');
+      
+      // Fetch survey responses count from backend
+      let surveyResponsesCount = 0;
+      if (userEmail) {
+        try {
+          const surveyRes = await fetch(`/api/survey/responses?userEmail=${encodeURIComponent(userEmail)}`);
+          if (surveyRes.ok) {
+            const surveyData = await surveyRes.json();
+            surveyResponsesCount = surveyData.responses?.length || 0;
+          }
+        } catch (err) {
+          console.error('Failed to fetch survey responses:', err);
+        }
+      }
+      
       // Calculate total hours
-      const totalMinutes = completedSessions.reduce((sum: number, s: any) => sum + s.duration, 0);
-      const totalHours = totalMinutes / 60;
+      // Most sessions store duration in SECONDS (from Date.now() calculations)
+      // But some old data might be in minutes
+      // Check first session to detect format: if < 10, likely minutes; if >= 60, likely seconds
+      let treatAsSeconds = true;
+      if (completedSessions.length > 0) {
+        const firstDuration = completedSessions[0].duration || 0;
+        // If first duration is very small (< 10), it's probably in minutes
+        // Typical sessions are 1-60 minutes = 60-3600 seconds
+        treatAsSeconds = firstDuration >= 10;
+      }
+      
+      const totalSeconds = completedSessions.reduce((sum: number, s: any) => {
+        const duration = s.duration || 0;
+        return sum + (treatAsSeconds ? duration : duration * 60);
+      }, 0);
+      const totalMinutes = totalSeconds / 60;
+      
+      console.log('Dashboard calculation:', {
+        totalSessions: completedSessions.length,
+        treatAsSeconds,
+        totalSeconds,
+        totalMinutes: totalMinutes.toFixed(1),
+        sampleDurations: completedSessions.slice(0, 5).map((s: any) => ({
+          duration: s.duration,
+          track: s.trackName
+        }))
+      });
       
       // Calculate wave frequency
       const waveCount: Record<string, number> = {};
@@ -132,8 +204,18 @@ export default function UserDashboard() {
           s.timestamp >= dayStart && s.timestamp <= dayEnd && s.completed
         );
         
-        const dayMinutes = daySessions.reduce((sum: number, s: any) => sum + s.duration, 0);
-        return { day, hours: Math.round((dayMinutes / 60) * 10) / 10 };
+        const daySeconds = daySessions.reduce((sum: number, s: any) => {
+          return sum + (treatAsSeconds ? s.duration : s.duration * 60);
+        }, 0);
+        const hours = Math.round((daySeconds / 3600) * 10) / 10;
+        
+        console.log(`${day} (${new Date(dayStart).toLocaleDateString()}):`, {
+          sessions: daySessions.length,
+          daySeconds,
+          hours
+        });
+        
+        return { day, hours };
       });
       
       // Get recent sessions
@@ -143,17 +225,18 @@ export default function UserDashboard() {
         .map((s: any) => ({
           id: s.timestamp.toString(),
           track: s.trackName,
-          duration: Math.round(s.duration / 60),
+          duration: treatAsSeconds ? Math.round(s.duration / 60) : s.duration, // Convert to minutes
           category: s.goal || 'focus',
           timestamp: new Date(s.timestamp).toISOString(),
           completed: s.completed,
         }));
       
       const dashboardData: DashboardData = {
-        totalHours: Math.round(totalHours * 10) / 10,
+        totalMinutes: Math.round(totalMinutes * 10) / 10,
         sessionsCompleted: completedSessions.length,
         currentStreak: stats.currentStreak || 0,
         favoriteWave,
+        surveyResponses: surveyResponsesCount,
         recentSessions,
         waveFrequency,
         weeklyProgress: weekProgress,
@@ -174,7 +257,7 @@ export default function UserDashboard() {
   };
 
   const getMockData = (): DashboardData => ({
-    totalHours: 24.5,
+    totalMinutes: 1470,
     sessionsCompleted: 42,
     currentStreak: 7,
     favoriteWave: 'Alpha (8-12 Hz)',
@@ -321,19 +404,6 @@ export default function UserDashboard() {
 
       {/* Main Content */}
       <main className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        {/* Welcome Section */}
-        <motion.div
-          className="mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-4xl font-bold text-white mb-2">
-            Welcome back, {userName}! 👋
-          </h1>
-          <p className="text-[#7aa2f7]">Here's your harmony journey overview</p>
-        </motion.div>
-
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Hours */}
@@ -349,9 +419,9 @@ export default function UserDashboard() {
               <span className="text-xs text-[#7aa2f7]/60">Total Time</span>
             </div>
             <div className="text-3xl font-bold text-white mb-1">
-              {dashboardData?.totalHours.toFixed(1)}h
+              {Math.round(dashboardData?.totalMinutes || 0)} min
             </div>
-            <p className="text-sm text-[#7aa2f7]/60">Hours listened</p>
+            <p className="text-sm text-[#7aa2f7]/60">Minutes listened</p>
           </motion.div>
 
           {/* Sessions Completed */}

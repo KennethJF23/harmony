@@ -33,28 +33,41 @@ const FocusTimer = ({
   onTimerStop 
 }: FocusTimerProps) => {
   const [selectedPreset, setSelectedPreset] = useState<TimerPreset>(presets[0]);
-  const [timeLeft, setTimeLeft] = useState(25 * 60);
+  const [timeLeft, setTimeLeft] = useState(presets[0].focus * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
   const [completedSessions, setCompletedSessions] = useState(0);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Sync timer with audio state
+  
+  // Initialize timeLeft when preset changes and timer is not running
   useEffect(() => {
-    if (!isAudioPlaying && isRunning) {
-      // Pause timer if music stops
-      setIsRunning(false);
+    if (!isRunning) {
+      setTimeLeft(selectedPreset.focus * 60);
     }
-  }, [isAudioPlaying, isRunning]);
+  }, [selectedPreset, isRunning]);
+
+  // Sync timer with audio state (non-intrusive):
+  // Do not auto-stop the timer when audio pauses; let user control it.
+  useEffect(() => {
+    // Previously: if (!isAudioPlaying && isRunning) setIsRunning(false)
+    // That caused the timer to stop immediately on start in some flows.
+    // We intentionally take no action here to keep countdown stable.
+  }, [isAudioPlaying]);
 
   useEffect(() => {
+    console.log('Timer useEffect triggered - isRunning:', isRunning, 'timeLeft:', timeLeft);
+    
     if (isRunning) {
+      console.log('Starting interval...');
       const startTime = sessionStartTime || Date.now();
       
       intervalRef.current = setInterval(() => {
         setTimeLeft(prev => {
-          if (prev <= 1) {
+          const newTime = prev - 1;
+          console.log('Timer tick:', newTime, 'seconds left');
+          
+          if (newTime <= 0) {
             // Timer complete
             if (!isBreak) {
               setCompletedSessions(c => c + 1);
@@ -85,7 +98,7 @@ const FocusTimer = ({
             setSessionStartTime(Date.now());
             return nextDuration;
           }
-          return prev - 1;
+          return newTime;
         });
       }, 1000);
     } else {
@@ -101,9 +114,10 @@ const FocusTimer = ({
         intervalRef.current = null;
       }
     };
-  }, [isRunning]);
+  }, [isRunning, isBreak, selectedPreset.focus, currentTrackName]);
 
   const startTimer = () => {
+    console.log('startTimer called, setting isRunning to true');
     setIsRunning(true);
     setSessionStartTime(Date.now());
     onTimerStart?.();

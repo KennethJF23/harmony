@@ -30,20 +30,35 @@ export async function GET(request: NextRequest) {
       };
       const startTime = now - (timeRanges[timeRange] || timeRanges['7d']);
       
-      // Get all users
-      const users = await db.collection('users').find({ role: 'user' }).toArray();
-      const totalUsers = users.length;
-      
-      // Get all sessions within time range
+      // Get all sessions (all time, not just time range)
       const allSessions = await db.collection('sessions')
-        .find({ timestamp: { $gte: startTime } })
+        .find({})
         .toArray();
       
+      // Get sessions within selected time range for analytics
+      const rangeSessions = allSessions.filter(s => s.timestamp >= startTime);
+      
+      // Registered users from MongoDB
+      const registeredUsers = await db.collection('users').countDocuments({ role: 'user' });
+
+      // Distinct users inferred from sessions (all time)
+      const uniqueUserIds = new Set(
+        allSessions.map(s => s.userId?.toString()).filter(Boolean)
+      );
+      const sessionUsers = uniqueUserIds.size;
+
+      // Use the higher value to be resilient in dev/prod and seed states
+      const totalUsers = Math.max(registeredUsers, sessionUsers);
+      console.log('Neuroscientist totals — registered:', registeredUsers, 'sessionUsers:', sessionUsers, 'total:', totalUsers);
+
+      // Keep full user list for later joins (names)
+      const users = await db.collection('users').find({ role: 'user' }).toArray();
+      
       // Calculate active users (users with sessions in time range)
-      const activeUserIds = new Set(allSessions.map(s => s.userId?.toString()));
+      const activeUserIds = new Set(rangeSessions.map(s => s.userId?.toString()));
       const activeUsers = activeUserIds.size;
       
-      // Calculate total sessions and average duration
+      // Calculate totals across all time (displayed in overview cards)
       const totalSessions = allSessions.length;
       const avgSessionDuration = allSessions.length > 0
         ? Math.round(allSessions.reduce((sum, s) => sum + (s.duration / 60), 0) / allSessions.length)
@@ -57,7 +72,7 @@ export async function GET(request: NextRequest) {
         'Delta': { count: 0, totalDuration: 0 },
       };
       
-      allSessions.forEach(session => {
+      rangeSessions.forEach(session => {
         const trackName = session.trackName?.toLowerCase() || '';
         let frequency = 'Alpha';
         
@@ -85,7 +100,7 @@ export async function GET(request: NextRequest) {
         'Delta': { completed: 0, total: 0, ratings: [], users: new Set() },
       };
       
-      allSessions.forEach(session => {
+      rangeSessions.forEach(session => {
         const trackName = session.trackName?.toLowerCase() || '';
         let frequency = 'Alpha';
         
@@ -110,7 +125,7 @@ export async function GET(request: NextRequest) {
       
       // Calculate user preferences
       const categoryCount: Record<string, number> = {};
-      allSessions.forEach(session => {
+      rangeSessions.forEach(session => {
         const category = session.goal || session.category || 'focus';
         const capitalizedCategory = category.charAt(0).toUpperCase() + category.slice(1);
         categoryCount[capitalizedCategory] = (categoryCount[capitalizedCategory] || 0) + 1;
@@ -124,7 +139,7 @@ export async function GET(request: NextRequest) {
       })).sort((a, b) => b.count - a.count);
       
       // Calculate mental state distribution (current active sessions)
-      const recentSessions = allSessions.filter(s => now - s.timestamp < 3600000); // Last hour
+      const recentSessions = rangeSessions.filter(s => now - s.timestamp < 3600000); // Last hour
       const stateCount: Record<string, number> = {};
       
       recentSessions.forEach(session => {
@@ -151,7 +166,7 @@ export async function GET(request: NextRequest) {
         const dayStart = new Date(targetDate.setHours(0, 0, 0, 0)).getTime();
         const dayEnd = new Date(targetDate.setHours(23, 59, 59, 999)).getTime();
         
-        const daySessions = allSessions.filter(s => s.timestamp >= dayStart && s.timestamp <= dayEnd);
+        const daySessions = rangeSessions.filter(s => s.timestamp >= dayStart && s.timestamp <= dayEnd);
         const dayUsers = new Set(daySessions.map(s => s.userId?.toString())).size;
         
         return {
@@ -162,7 +177,7 @@ export async function GET(request: NextRequest) {
       });
       
       // Get recent activity
-      const recentActivity = allSessions
+      const recentActivity = rangeSessions
         .slice(-10)
         .reverse()
         .map(session => {

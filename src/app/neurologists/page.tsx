@@ -9,8 +9,35 @@ import WaveRecommendation from '@/components/WaveRecommendation';
 import AIAssistant from '@/components/AIAssistant';
 import PWAInstaller from '@/components/PWAInstaller';
 import ScrollToTop from '@/components/ScrollToTop';
+import { useEffect, useState } from 'react';
 
 export default function NeuroscientistsPage() {
+  const [metrics, setMetrics] = useState<{
+    totalUsers: number;
+    activeUsers: number;
+    totalSessions: number;
+    avgSessionDuration: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const loadMetrics = async () => {
+      try {
+        const res = await fetch('/api/dashboard/neuroscientist?timeRange=7d', {
+          headers: { Authorization: 'Bearer demo' },
+        });
+        const data = await res.json();
+        setMetrics({
+          totalUsers: data.totalUsers ?? 0,
+          activeUsers: data.activeUsers ?? 0,
+          totalSessions: data.totalSessions ?? 0,
+          avgSessionDuration: data.avgSessionDuration ?? 0,
+        });
+      } catch (e) {
+        console.warn('Failed to load neuroscientist metrics', e);
+      }
+    };
+    loadMetrics();
+  }, []);
   const features = [
     {
       icon: Brain,
@@ -129,6 +156,30 @@ export default function NeuroscientistsPage() {
           <h2 className="text-3xl font-bold text-white mb-8 text-center">
             Clinical Dashboard Preview
           </h2>
+
+          {/* Live Metrics from Neuroscience Dashboard */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="p-6 bg-[#1e2642]/50 border border-[#5b9eff]/20 rounded-xl">
+              <div className="text-sm text-[#7aa2f7] mb-1">Total Users</div>
+              <div className="text-3xl font-bold text-white">{metrics ? metrics.totalUsers : '—'}</div>
+              <div className="text-xs text-[#7aa2f7]/60">Registered users</div>
+            </div>
+            <div className="p-6 bg-[#1e2642]/50 border border-[#5b9eff]/20 rounded-xl">
+              <div className="text-sm text-[#7aa2f7] mb-1">Active Users</div>
+              <div className="text-3xl font-bold text-white">{metrics ? metrics.activeUsers : '—'}</div>
+              <div className="text-xs text-[#7aa2f7]/60">Active in selected range</div>
+            </div>
+            <div className="p-6 bg-[#1e2642]/50 border border-[#5b9eff]/20 rounded-xl">
+              <div className="text-sm text-[#7aa2f7] mb-1">Total Sessions</div>
+              <div className="text-3xl font-bold text-white">{metrics ? metrics.totalSessions : '—'}</div>
+              <div className="text-xs text-[#7aa2f7]/60">All sessions in range</div>
+            </div>
+            <div className="p-6 bg-[#1e2642]/50 border border-[#5b9eff]/20 rounded-xl">
+              <div className="text-sm text-[#7aa2f7] mb-1">Avg Session</div>
+              <div className="text-3xl font-bold text-white">{metrics ? `${metrics.avgSessionDuration}m` : '—'}</div>
+              <div className="text-xs text-[#7aa2f7]/60">Average duration</div>
+            </div>
+          </div>
 
           {/* Patient Monitoring Table */}
           <div className="bg-[#1e2642]/50 border border-[#5b9eff]/20 rounded-xl p-6 mb-8">
