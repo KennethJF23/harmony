@@ -8,7 +8,6 @@ import Footer from '@/components/Footer';
 import AIAssistant from '@/components/AIAssistant';
 import PWAInstaller from '@/components/PWAInstaller';
 import WaveRecommendation from '@/components/WaveRecommendation';
-import ScrollToTop from '@/components/ScrollToTop';
 
 export default function Home() {
   return (
@@ -29,7 +28,6 @@ export default function Home() {
       <AIAssistant />
       <PWAInstaller />
       <WaveRecommendation />
-      <ScrollToTop />
     </div>
   );
 }

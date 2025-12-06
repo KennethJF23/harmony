@@ -38,6 +38,7 @@ const AIAssistant = ({ autoOpen = false }: AIAssistantProps) => {
   const [isTyping, setIsTyping] = useState(false);
   const [animatingConfidence, setAnimatingConfidence] = useState<string | null>(null);
   const [currentConfidence, setCurrentConfidence] = useState<{ [key: string]: number }>({});
+  const [expanded, setExpanded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasInitialized = useRef(false);
 
@@ -197,7 +198,7 @@ const AIAssistant = ({ autoOpen = false }: AIAssistantProps) => {
       {/* Floating Button - AI Assistant - HIGHEST POSITION */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-gradient-to-r from-[#7aa2f7] to-[#bb9af7] text-white rounded-full shadow-2xl hover:shadow-xl transition-all duration-300 items-center justify-center group touch-manipulation"
+        className="bg-linear-to-r from-[#7aa2f7] to-[#bb9af7] text-white rounded-full shadow-2xl hover:shadow-xl transition-all duration-300 items-center justify-center group touch-manipulation"
         style={{ 
           position: 'fixed', 
           zIndex: 9999,
@@ -233,18 +234,32 @@ const AIAssistant = ({ autoOpen = false }: AIAssistantProps) => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed bottom-[260px] sm:bottom-[280px] right-4 sm:right-8 z-[10000] w-[calc(100vw-2rem)] sm:w-96 max-w-[calc(100vw-2rem)] h-[calc(100vh-18rem)] sm:h-[500px] max-h-[calc(100vh-20rem)]"
+            className={expanded
+              ? "fixed bottom-0 right-0 z-10000 w-full h-full sm:w-1/2 sm:h-full sm:right-0 sm:top-0 max-w-none max-h-none"
+              : "fixed bottom-4 right-4 z-10000 w-80 max-w-[95vw] h-112 max-h-[80vh]"
+            }
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            transition={{ 
-              duration: 0.2,
-              ease: "easeOut"
-            }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
           >
+            <button
+              className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-linear-to-r from-[#7aa2f7] to-[#bb9af7] text-white shadow hover:shadow-lg border-none focus:outline-none transition-all duration-150"
+              style={{ fontFamily: 'inherit', letterSpacing: '0.02em' }}
+              onClick={() => setExpanded(e => !e)}
+              aria-label={expanded ? "Collapse" : "Expand"}
+              title={expanded ? "Collapse" : "Expand"}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 20 20">
+                {expanded
+                  ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 14L14 6M6 6l8 8" />
+                  : <path strokeLinecap="round" strokeLinejoin="round" d="M4 10h12M10 4v12" />}
+              </svg>
+              <span className="text-xs font-semibold tracking-wide">{expanded ? "Collapse" : "Expand"}</span>
+            </button>
             <div className="bg-[#1a1f35]/95 backdrop-blur-2xl rounded-3xl border border-[#7aa2f7]/20 shadow-2xl h-full flex flex-col overflow-hidden">
               {/* Header */}
-              <div className="p-6 border-b border-[#7aa2f7]/10 bg-gradient-to-r from-[#7aa2f7]/10 to-[#bb9af7]/10 flex items-start justify-between">
+              <div className="p-6 border-b border-[#7aa2f7]/10 bg-linear-to-r from-[#7aa2f7]/10 to-[#bb9af7]/10 flex items-start justify-between">
                 <div>
                   <h3 className="text-xl font-bold text-white flex items-center space-x-2">
                     <svg className="w-6 h-6 text-[#7aa2f7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -281,9 +296,9 @@ const AIAssistant = ({ autoOpen = false }: AIAssistantProps) => {
                     <div
                       className={`max-w-[85%] p-4 rounded-2xl backdrop-blur-sm transition-all ${
                         message.role === 'user'
-                          ? 'bg-gradient-to-r from-[#7aa2f7] to-[#bb9af7] text-white shadow-lg'
+                          ? 'bg-linear-to-r from-[#7aa2f7] to-[#bb9af7] text-white shadow-lg'
                           : message.category
-                          ? `bg-gradient-to-br ${getCategoryColor(message.category)}/10 text-white border border-${message.category === 'focus' ? '[#7aa2f7]' : message.category === 'sleep' ? 'purple-500' : message.category === 'relaxation' ? 'green-500' : message.category === 'creativity' ? 'yellow-500' : 'red-500'}/30`
+                          ? `bg-linear-to-br ${getCategoryColor(message.category)}/10 text-white border border-${message.category === 'focus' ? '[#7aa2f7]' : message.category === 'sleep' ? 'purple-500' : message.category === 'relaxation' ? 'green-500' : message.category === 'creativity' ? 'yellow-500' : 'red-500'}/30`
                           : 'bg-[#1a1f35]/80 text-white border border-[#7aa2f7]/20'
                       }`}
                     >
@@ -310,7 +325,7 @@ const AIAssistant = ({ autoOpen = false }: AIAssistantProps) => {
                             {/* Shimmer effect for adaptive AI */}
                             {animatingConfidence === message.id && (
                               <motion.div
-                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-full"
+                                className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent rounded-full"
                                 initial={{ x: '-100%' }}
                                 animate={{ x: '200%' }}
                                 transition={{ duration: 1, repeat: 2 }}
@@ -445,15 +460,15 @@ const AIAssistant = ({ autoOpen = false }: AIAssistantProps) => {
 
               {/* Quick Prompts */}
               {messages.length === 1 && (
-                <div className="px-6 pb-4">
-                  <p className="text-xs text-gray-400 mb-3">Quick questions:</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {quickPrompts.map((prompt, index) => (
+                <div className="px-2 pb-2">
+                  <p className="text-xs text-gray-400 mb-1">Quick questions:</p>
+                  <div className="flex gap-2 justify-center">
+                    {quickPrompts.slice(0,2).map((prompt, index) => (
                       <motion.button
                         key={index}
                         onClick={() => handleQuickPrompt(prompt.prompt)}
-                        className="p-3 bg-[#1a1f35]/50 hover:bg-[#1a1f35] border border-[#7aa2f7]/20 hover:border-[#7aa2f7]/40 rounded-xl text-xs font-medium text-white transition-all"
-                        whileHover={{ scale: 1.03, y: -2 }}
+                        className="px-2 py-1 text-xs bg-[#1a1f35]/50 hover:bg-[#1a1f35] border border-[#7aa2f7]/20 hover:border-[#7aa2f7]/40 rounded font-medium text-white transition-all min-w-16"
+                        whileHover={{ scale: 1.01, y: -1 }}
                         whileTap={{ scale: 0.97 }}
                       >
                         {prompt.text}
@@ -477,7 +492,7 @@ const AIAssistant = ({ autoOpen = false }: AIAssistantProps) => {
                   <motion.button
                     type="submit"
                     disabled={!input.trim() || isLoading}
-                    className="px-6 py-3 bg-gradient-to-r from-[#7aa2f7] to-[#bb9af7] text-white rounded-full font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#7aa2f7]/30 hover:shadow-xl transition-all"
+                    className="px-6 py-3 bg-linear-to-r from-[#7aa2f7] to-[#bb9af7] text-white rounded-full font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#7aa2f7]/30 hover:shadow-xl transition-all"
                     whileHover={{ scale: input.trim() && !isLoading ? 1.05 : 1 }}
                     whileTap={{ scale: input.trim() && !isLoading ? 0.95 : 1 }}
                   >

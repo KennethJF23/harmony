@@ -6,7 +6,6 @@ import Footer from '@/components/Footer';
 import AnalyticsDashboard from '@/components/stats/AnalyticsDashboard';
 import AIAssistant from '@/components/AIAssistant';
 import PWAInstaller from '@/components/PWAInstaller';
-import ScrollToTop from '@/components/ScrollToTop';
 import WaveRecommendation from '@/components/WaveRecommendation';
 
 export default function AnalyticsPage() {
@@ -47,7 +46,6 @@ export default function AnalyticsPage() {
       <Footer />
       <AIAssistant />
       <PWAInstaller />
-      <ScrollToTop />
       <WaveRecommendation />
     </div>
   );

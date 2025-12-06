@@ -9,7 +9,6 @@ import Footer from '@/components/Footer';
 import SyncedSession from '@/components/SyncedSession';
 import AIAssistant from '@/components/AIAssistant';
 import PWAInstaller from '@/components/PWAInstaller';
-import ScrollToTop from '@/components/ScrollToTop';
 
 function SessionsContent() {
   const searchParams = useSearchParams();
@@ -103,7 +102,6 @@ function SessionsContent() {
       <Footer />
       <AIAssistant />
       <PWAInstaller />
-      <ScrollToTop />
     </div>
   );
 }

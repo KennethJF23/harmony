@@ -8,7 +8,6 @@ import Footer from '@/components/Footer';
 import WaveRecommendation from '@/components/WaveRecommendation';
 import AIAssistant from '@/components/AIAssistant';
 import PWAInstaller from '@/components/PWAInstaller';
-import ScrollToTop from '@/components/ScrollToTop';
 import { useEffect, useState } from 'react';
 
 export default function NeuroscientistsPage() {
@@ -325,7 +324,6 @@ export default function NeuroscientistsPage() {
       <AIAssistant />
       <PWAInstaller />
       <WaveRecommendation />
-      <ScrollToTop />
     </div>
   );
 }
