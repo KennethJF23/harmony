@@ -215,7 +215,7 @@ const AIAssistant = ({ autoOpen = false }: AIAssistantProps) => {
         aria-label="Open AI chat assistant"
         title="AI Assistant"
       >
-        <svg className="w-15 h-15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
           {isOpen ? (
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           ) : (
