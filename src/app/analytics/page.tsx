@@ -44,9 +44,12 @@ export default function AnalyticsPage() {
       </main>
 
       <Footer />
+      {/* Only show one floating button on mobile to prevent overlap */}
       <AIAssistant />
       <PWAInstaller />
-      <WaveRecommendation />
+      <div className="hidden sm:block">
+        <WaveRecommendation />
+      </div>
     </div>
   );
 }

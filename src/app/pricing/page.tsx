@@ -277,9 +277,13 @@ export default function PricingPage() {
       </div>
 
       <Footer />
+      {/* Only show one floating button on mobile to prevent overlap */}
+      {/* On mobile, show AIAssistant; on desktop, show both */}
       <AIAssistant />
       <PWAInstaller />
-      <WaveRecommendation />
+      <div className="hidden sm:block">
+        <WaveRecommendation />
+      </div>
     </div>
   );
 }
