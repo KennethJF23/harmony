@@ -127,7 +127,7 @@ export const saveUserPreferences = (preferences: Partial<UserPreferences>): void
 /**
  * Track a listening session
  */
-export const trackSession = (sessionData: SessionData): void => {
+export const trackSession = async (sessionData: SessionData): Promise<void> => {
   if (typeof window === 'undefined') return;
   
   try {
@@ -153,6 +153,8 @@ export const trackSession = (sessionData: SessionData): void => {
     saveUserPreferences(preferences);
     
     // Also save to backend
+    console.log('=== Tracking session ===');
+    console.log('Session data:', sessionData);
     saveSessionToBackend(sessionData).catch(err => {
       console.error('Failed to save session to backend:', err);
     });
@@ -167,9 +169,16 @@ export const trackSession = (sessionData: SessionData): void => {
 const saveSessionToBackend = async (sessionData: SessionData): Promise<void> => {
   try {
     const token = localStorage.getItem('authToken');
-    if (!token) return;
+    console.log('saveSessionToBackend - Token:', token ? token.substring(0, 20) + '...' : 'null');
+    
+    if (!token) {
+      console.warn('No auth token found, skipping backend save');
+      return;
+    }
 
-    await fetch('/api/sessions', {
+    console.log('saveSessionToBackend - Sending to API:', sessionData);
+    
+    const response = await fetch('/api/sessions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -177,6 +186,12 @@ const saveSessionToBackend = async (sessionData: SessionData): Promise<void> => 
       },
       body: JSON.stringify(sessionData),
     });
+    
+    if (!response.ok) {
+      console.error('Failed to save session:', response.status, response.statusText);
+    } else {
+      console.log('Session saved successfully to backend');
+    }
   } catch (error) {
     console.error('Error saving to backend:', error);
   }

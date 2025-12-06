@@ -197,7 +197,7 @@ const AIAssistant = ({ autoOpen = false }: AIAssistantProps) => {
       {/* Floating Button - AI Assistant */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-20 right-8 w-12 h-12 bg-gradient-to-r from-[#7aa2f7] to-[#bb9af7] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-[80] group"
+        className="fixed bottom-20 right-8 w-12 h-12 bg-gradient-to-r from-[#7aa2f7] to-[#bb9af7] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-[9999] group"
         initial={{ opacity: 1, scale: 1 }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}

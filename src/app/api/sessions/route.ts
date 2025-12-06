@@ -31,6 +31,9 @@ export async function POST(request: NextRequest) {
     // Get user from token (simplified - in production you'd verify JWT)
     const user = await db.collection('users').findOne({ sessionToken: token });
     
+    console.log('Sessions API - Token:', token.substring(0, 20) + '...');
+    console.log('Sessions API - User found:', user ? `${user.email} (${user._id})` : 'null');
+    
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -53,7 +56,16 @@ export async function POST(request: NextRequest) {
       category: goal || 'focus',
     };
 
-    await db.collection('sessions').insertOne(session);
+    console.log('Sessions API - Saving session:', {
+      userId: session.userId.toString(),
+      trackName: session.trackName,
+      duration: session.duration,
+      completed: session.completed
+    });
+
+    const result = await db.collection('sessions').insertOne(session);
+    
+    console.log('Sessions API - Session saved with ID:', result.insertedId);
 
     return NextResponse.json({ success: true, message: 'Session tracked successfully' });
   } catch (error) {

@@ -14,45 +14,86 @@ export async function GET(request: NextRequest) {
 
     const token = authHeader.substring(7);
     
-    // Mock data for development
-    if (process.env.NODE_ENV === 'development' || token.startsWith('mock-token')) {
-      return NextResponse.json(getMockDashboardData());
-    }
-    
     const { db } = await connectToDatabase();
     
-    // Get user data
+    // Get user by session token
     const user = await db.collection('users').findOne({ 
-      // Replace with actual token verification
-      // _id: new ObjectId(userIdFromToken)
+      sessionToken: token
     });
+
+    console.log('Dashboard API - Token:', token.substring(0, 20) + '...');
+    console.log('Dashboard API - User found:', user ? `${user.email} (${user._id}) - Role: ${user.role}` : 'null');
 
     if (!user) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: 'User not found or session expired' },
         { status: 404 }
       );
     }
 
-    // Get user sessions
-    const sessions = await db.collection('sessions')
-      .find({ userId: user._id })
+    // Get all user accounts with the same email (handles user/neuroscientist role switching)
+    const allUsersWithEmail = await db.collection('users')
+      .find({ email: user.email })
+      .toArray();
+    
+    console.log('Dashboard API - All users with this email:', allUsersWithEmail.map(u => ({
+      id: u._id.toString(),
+      email: u.email,
+      role: u.role,
+      createdAt: u.createdAt
+    })));
+    
+    const allUserIds = allUsersWithEmail.map(u => u._id);
+
+    console.log('Dashboard API - Fetching sessions for all user IDs:', allUserIds.map(id => id.toString()));
+
+    // Get user sessions from ALL accounts with this email
+    const allSessions = await db.collection('sessions')
+      .find({ userId: { $in: allUserIds } })
       .sort({ timestamp: -1 })
-      .limit(10)
       .toArray();
 
-    // Calculate total hours
-    const totalMinutes = sessions.reduce((acc, session) => acc + (session.duration / 60), 0);
+    // Debug: Check all sessions in database
+    const totalSessionsInDb = await db.collection('sessions').countDocuments();
+    const allSessionsSample = await db.collection('sessions')
+      .find({})
+      .limit(3)
+      .toArray();
+
+    console.log('Dashboard API - Total sessions found:', allSessions.length);
+    console.log('Dashboard API - Total sessions in entire DB:', totalSessionsInDb);
+    console.log('Dashboard API - Sample of all sessions in DB:', allSessionsSample.map(s => ({
+      trackName: s.trackName,
+      userId: s.userId?.toString(),
+      timestamp: s.timestamp,
+      duration: s.duration
+    })));
+    console.log('Dashboard API - Looking for userId:', user._id.toString());
+    console.log('Dashboard API - Sample sessions:', allSessions.slice(0, 3).map(s => ({
+      trackName: s.trackName,
+      duration: s.duration,
+      timestamp: s.timestamp,
+      userId: s.userId?.toString()
+    })));
+
+    // Get recent sessions for display (limit to 10)
+    const recentSessionsForDisplay = allSessions.slice(0, 10);
+
+    // Calculate total hours from ALL sessions
+    const totalMinutes = allSessions.reduce((acc, session) => acc + (session.duration / 60), 0);
     const totalHours = totalMinutes / 60;
 
-    // Get completed sessions count
-    const sessionsCompleted = sessions.filter(s => s.completed).length;
+    console.log('Dashboard API - Total minutes:', totalMinutes);
+    console.log('Dashboard API - Total hours:', totalHours);
+
+    // Get completed sessions count from all sessions
+    const sessionsCompleted = allSessions.filter(s => s.completed).length;
 
     // Calculate current streak
-    const currentStreak = calculateStreak(sessions);
+    const currentStreak = calculateStreak(allSessions);
 
     // Get wave frequency statistics
-    const waveFrequency = calculateWaveFrequency(sessions);
+    const waveFrequency = calculateWaveFrequency(allSessions);
 
     // Get favorite wave
     const favoriteWave = waveFrequency.length > 0 
@@ -60,10 +101,10 @@ export async function GET(request: NextRequest) {
       : 'Alpha (8-12 Hz)';
 
     // Get weekly progress
-    const weeklyProgress = calculateWeeklyProgress(sessions);
+    const weeklyProgress = calculateWeeklyProgress(allSessions);
 
-    // Get recent sessions
-    const recentSessions = sessions.slice(0, 5).map(session => ({
+    // Get recent sessions (last 5 for display)
+    const recentSessions = recentSessionsForDisplay.slice(0, 5).map(session => ({
       id: session._id.toString(),
       track: session.trackName,
       duration: Math.round(session.duration / 60),

@@ -17,6 +17,7 @@ import {
   Brain
 } from 'lucide-react';
 import Footer from '@/components/Footer';
+import AIAssistant from '@/components/AIAssistant';
 
 interface DashboardData {
   totalMinutes: number;
@@ -100,158 +101,60 @@ export default function UserDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      // Get data from localStorage
-      const preferences = typeof window !== 'undefined' 
-        ? JSON.parse(localStorage.getItem('harmony_user_preferences') || '{}')
-        : {};
+      const token = localStorage.getItem('authToken');
       
-      const stats = typeof window !== 'undefined'
-        ? JSON.parse(localStorage.getItem('harmony_user_stats') || '{}')
-        : {};
-      
-      const userEmail = localStorage.getItem('userEmail');
-      
-      const sessionHistory = preferences.sessionHistory || [];
-      const completedSessions = sessionHistory.filter((s: any) => s.completed);
-      
-      console.log('=== Session History Debug ===');
-      console.log('Total sessions in history:', sessionHistory.length);
-      console.log('Completed sessions:', completedSessions.length);
-      console.log('All sessions:', sessionHistory.map((s: any) => ({
-        track: s.trackName,
-        timestamp: s.timestamp,
-        timestampDate: new Date(s.timestamp).toLocaleString(),
-        duration: s.duration,
-        completed: s.completed
-      })));
-      console.log('============================');
-      
-      // Fetch survey responses count from backend
-      let surveyResponsesCount = 0;
-      if (userEmail) {
-        try {
-          const surveyRes = await fetch(`/api/survey/responses?userEmail=${encodeURIComponent(userEmail)}`);
-          if (surveyRes.ok) {
-            const surveyData = await surveyRes.json();
-            surveyResponsesCount = surveyData.responses?.length || 0;
-          }
-        } catch (err) {
-          console.error('Failed to fetch survey responses:', err);
-        }
+      if (!token) {
+        console.error('No auth token found');
+        return;
       }
-      
-      // Calculate total hours
-      // Most sessions store duration in SECONDS (from Date.now() calculations)
-      // But some old data might be in minutes
-      // Check first session to detect format: if < 10, likely minutes; if >= 60, likely seconds
-      let treatAsSeconds = true;
-      if (completedSessions.length > 0) {
-        const firstDuration = completedSessions[0].duration || 0;
-        // If first duration is very small (< 10), it's probably in minutes
-        // Typical sessions are 1-60 minutes = 60-3600 seconds
-        treatAsSeconds = firstDuration >= 10;
+
+      // Fetch data from MongoDB API
+      const response = await fetch('/api/dashboard/user', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        console.error('Failed to fetch dashboard data:', response.statusText);
+        return;
       }
+
+      const data = await response.json();
       
-      const totalSeconds = completedSessions.reduce((sum: number, s: any) => {
-        const duration = s.duration || 0;
-        return sum + (treatAsSeconds ? duration : duration * 60);
-      }, 0);
-      const totalMinutes = totalSeconds / 60;
-      
-      console.log('Dashboard calculation:', {
-        totalSessions: completedSessions.length,
-        treatAsSeconds,
-        totalSeconds,
-        totalMinutes: totalMinutes.toFixed(1),
-        sampleDurations: completedSessions.slice(0, 5).map((s: any) => ({
-          duration: s.duration,
-          track: s.trackName
-        }))
+      console.log('=== Dashboard Data from MongoDB ===');
+      console.log('Total hours:', data.totalHours);
+      console.log('Sessions completed:', data.sessionsCompleted);
+      console.log('Current streak:', data.currentStreak);
+      console.log('Favorite wave:', data.favoriteWave);
+      console.log('Recent sessions:', data.recentSessions);
+      console.log('===================================');
+
+      // Set user name
+      if (data.userName) {
+        setUserName(data.userName);
+      }
+
+      // Transform API data to match dashboard format
+      setDashboardData({
+        totalMinutes: data.totalHours * 60,
+        sessionsCompleted: data.sessionsCompleted,
+        currentStreak: data.currentStreak,
+        favoriteWave: data.favoriteWave,
+        surveyResponses: data.surveyResponses || 0,
+        mostEffectiveFrequency: data.mostEffectiveFrequency,
+        avgFocusQuality: data.avgFocusQuality,
+        recentSessions: data.recentSessions || [],
+        waveFrequency: data.waveFrequency || [],
+        weeklyProgress: data.weeklyProgress || [],
+        moodRatings: data.moodRatings || [],
       });
-      
-      // Calculate wave frequency
-      const waveCount: Record<string, number> = {};
-      sessionHistory.forEach((s: any) => {
-        const trackName = s.trackName?.toLowerCase() || '';
-        if (trackName.includes('alpha')) waveCount.Alpha = (waveCount.Alpha || 0) + 1;
-        else if (trackName.includes('theta')) waveCount.Theta = (waveCount.Theta || 0) + 1;
-        else if (trackName.includes('beta')) waveCount.Beta = (waveCount.Beta || 0) + 1;
-        else if (trackName.includes('delta')) waveCount.Delta = (waveCount.Delta || 0) + 1;
-      });
-      
-      const totalWaves = Object.values(waveCount).reduce((a: number, b: number) => a + b, 0);
-      const waveFrequency = Object.entries(waveCount)
-        .map(([name, count]) => ({
-          name,
-          count,
-          percentage: totalWaves > 0 ? Math.round((count / totalWaves) * 100) : 0,
-        }))
-        .sort((a, b) => b.count - a.count);
-      
-      const favoriteWave = waveFrequency[0] 
-        ? `${waveFrequency[0].name} (${getFrequencyRange(waveFrequency[0].name)})`
-        : 'No sessions yet';
-      
-      // Calculate weekly progress
-      const now = Date.now();
-      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      const weekProgress = days.map((day, index) => {
-        const targetDate = new Date(now - (6 - index) * 86400000);
-        const dayStart = new Date(targetDate.setHours(0, 0, 0, 0)).getTime();
-        const dayEnd = new Date(targetDate.setHours(23, 59, 59, 999)).getTime();
-        
-        const daySessions = sessionHistory.filter((s: any) => 
-          s.timestamp >= dayStart && s.timestamp <= dayEnd && s.completed
-        );
-        
-        const daySeconds = daySessions.reduce((sum: number, s: any) => {
-          return sum + (treatAsSeconds ? s.duration : s.duration * 60);
-        }, 0);
-        const hours = Math.round((daySeconds / 3600) * 10) / 10;
-        
-        console.log(`${day} (${new Date(dayStart).toLocaleDateString()}):`, {
-          sessions: daySessions.length,
-          daySeconds,
-          hours
-        });
-        
-        return { day, hours };
-      });
-      
-      // Get recent sessions
-      const recentSessions = sessionHistory
-        .slice(-5)
-        .reverse()
-        .map((s: any) => ({
-          id: s.timestamp.toString(),
-          track: s.trackName,
-          duration: treatAsSeconds ? Math.round(s.duration / 60) : s.duration, // Convert to minutes
-          category: s.goal || 'focus',
-          timestamp: new Date(s.timestamp).toISOString(),
-          completed: s.completed,
-        }));
-      
-      const dashboardData: DashboardData = {
-        totalMinutes: Math.round(totalMinutes * 10) / 10,
-        sessionsCompleted: completedSessions.length,
-        currentStreak: stats.currentStreak || 0,
-        favoriteWave,
-        surveyResponses: surveyResponsesCount,
-        recentSessions,
-        waveFrequency,
-        weeklyProgress: weekProgress,
-        moodRatings: [],
-      };
-      
-      setDashboardData(dashboardData);
-      
-      // Set user name from localStorage
-      const email = localStorage.getItem('userEmail') || 'user@example.com';
-      setUserName(email.split('@')[0]);
+
+      setIsLoading(false);
     } catch (error) {
-      console.error('Error fetching dashboard:', error);
-      setDashboardData(getMockData());
-    } finally {
+      console.error('Error fetching dashboard data:', error);
       setIsLoading(false);
     }
   };
@@ -733,6 +636,7 @@ export default function UserDashboard() {
       </main>
 
       <Footer />
+      <AIAssistant />
     </div>
   );
 }

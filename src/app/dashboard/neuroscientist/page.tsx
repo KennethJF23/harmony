@@ -19,6 +19,7 @@ import {
   Zap
 } from 'lucide-react';
 import Footer from '@/components/Footer';
+import AIAssistant from '@/components/AIAssistant';
 
 interface DashboardData {
   totalUsers: number;
@@ -1008,6 +1009,7 @@ export default function NeuroscientistDashboard() {
       </main>
 
       <Footer />
+      <AIAssistant />
     </div>
   );
 }
