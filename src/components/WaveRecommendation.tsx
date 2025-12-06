@@ -159,22 +159,23 @@ const WaveRecommendation = memo(({ onRecommendation }: WaveRecommendationProps) 
 
   return (
     <>
-      {/* Floating Button - LOWEST POSITION (bottom-6) */}
+      {/* Floating Button - LOWEST POSITION */}
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-8 w-12 h-12 bg-gradient-to-r from-[#5b9eff] to-[#a78bfa] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-[60] group"
+        className="fixed bottom-5 sm:bottom-6 right-4 sm:right-8 w-14 h-14 bg-gradient-to-r from-[#5b9eff] to-[#a78bfa] text-white rounded-full shadow-2xl hover:shadow-xl transition-all duration-300 flex items-center justify-center z-[9996] group touch-manipulation"
+        style={{ position: 'fixed', zIndex: 9996 }}
         initial={{ opacity: 1, scale: 1 }}
         whileHover={{ scale: 1.1, rotate: 5 }}
         whileTap={{ scale: 0.9 }}
         aria-label="Get personalized wave recommendation"
         title="Wave Recommendation"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
         
         {/* Tooltip */}
-        <div className="absolute right-full mr-3 whitespace-nowrap bg-[#1a1f35] text-white px-3 py-2 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+        <div className="hidden sm:block absolute right-full mr-3 whitespace-nowrap bg-[#1a1f35] text-white px-3 py-2 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
           Get Wave Recommendation
         </div>
       </motion.button>
@@ -197,39 +198,40 @@ const WaveRecommendation = memo(({ onRecommendation }: WaveRecommendationProps) 
               role="dialog"
               aria-modal="true"
               aria-labelledby="wave-recommendation-title"
-              className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[600px] md:max-h-[80vh] bg-gradient-to-br from-[#1a1f35]/95 to-[#0a0e1a]/95 backdrop-blur-xl rounded-2xl border border-[#5b9eff]/20 shadow-2xl z-[9999] overflow-hidden flex flex-col"
+              className="fixed inset-3 sm:inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[600px] md:max-h-[85vh] bg-gradient-to-br from-[#1a1f35]/95 to-[#0a0e1a]/95 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-[#5b9eff]/20 shadow-2xl z-[9999] overflow-hidden flex flex-col max-h-[95vh]"
               initial={{ opacity: 0, scale: 0.9, y: 50 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 50 }}
               transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             >
               {/* Header */}
-              <div className="p-6 border-b border-[#5b9eff]/10">
+              <div className="p-4 sm:p-6 border-b border-[#5b9eff]/10">
                 <div className="flex items-center justify-between">
-                  <h2 id="wave-recommendation-title" className="text-2xl font-bold text-white flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-[#5b9eff] to-[#a78bfa] rounded-full flex items-center justify-center">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <h2 id="wave-recommendation-title" className="text-lg sm:text-2xl font-bold text-white flex items-center gap-2 sm:gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-[#5b9eff] to-[#a78bfa] rounded-full flex items-center justify-center shrink-0">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                     </div>
-                    Wave Recommendation
+                    <span className="truncate">Wave Recommendation</span>
                   </h2>
                   <motion.button
                     onClick={() => setIsOpen(false)}
-                    className="w-8 h-8 rounded-full bg-[#2a2f4a]/50 hover:bg-[#2a2f4a] text-gray-400 hover:text-white transition-all flex items-center justify-center"
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#2a2f4a]/50 hover:bg-[#2a2f4a] text-gray-400 hover:text-white transition-all flex items-center justify-center shrink-0 touch-manipulation"
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
+                    aria-label="Close"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </motion.button>
                 </div>
-                <p className="text-gray-400 text-sm mt-2">Tell us what you need, and we&apos;ll recommend the perfect brainwave frequency</p>
+                <p className="text-gray-400 text-xs sm:text-sm mt-2">Tell us what you need, and we&apos;ll recommend the perfect brainwave frequency</p>
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6">
                 <AnimatePresence mode="wait">
                   {!selectedMood ? (
                     <motion.div
@@ -239,12 +241,12 @@ const WaveRecommendation = memo(({ onRecommendation }: WaveRecommendationProps) 
                       exit={{ opacity: 0, x: 20 }}
                       className="space-y-3"
                     >
-                      <h3 className="text-lg font-semibold text-white mb-4">How are you feeling right now?</h3>
+                      <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">How are you feeling right now?</h3>
                       {moods.map((mood, index) => (
                         <motion.button
                           key={mood.id}
                           onClick={() => handleMoodSelect(mood.id)}
-                          className="w-full p-4 rounded-xl bg-[#1a1f35]/50 hover:bg-[#1a1f35] border border-[#5b9eff]/10 hover:border-[#5b9eff]/30 transition-all text-left group"
+                          className="w-full p-3 sm:p-4 rounded-lg sm:rounded-xl bg-[#1a1f35]/50 hover:bg-[#1a1f35] active:bg-[#1a1f35] border border-[#5b9eff]/10 hover:border-[#5b9eff]/30 transition-all text-left group touch-manipulation"
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}

@@ -194,26 +194,37 @@ const AIAssistant = ({ autoOpen = false }: AIAssistantProps) => {
 
   return (
     <>
-      {/* Floating Button - AI Assistant */}
+      {/* Floating Button - AI Assistant - HIGHEST POSITION */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-20 right-8 w-12 h-12 bg-gradient-to-r from-[#7aa2f7] to-[#bb9af7] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-[9999] group"
+        className="bg-gradient-to-r from-[#7aa2f7] to-[#bb9af7] text-white rounded-full shadow-2xl hover:shadow-xl transition-all duration-300 items-center justify-center group touch-manipulation"
+        style={{ 
+          position: 'fixed', 
+          zIndex: 9999,
+          bottom: '1.5rem',
+          right: '1.5rem',
+          display: 'flex',
+          width: '64px',
+          height: '64px',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
         initial={{ opacity: 1, scale: 1 }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         aria-label="Open AI chat assistant"
         title="AI Assistant"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-15 h-15" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
           {isOpen ? (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           ) : (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           )}
         </svg>
         
         {/* Tooltip */}
-        <div className="absolute right-full mr-3 whitespace-nowrap bg-[#1a1f35] text-white px-3 py-2 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+        <div className="hidden sm:block absolute right-full mr-3 whitespace-nowrap bg-[#1a1f35] text-white px-3 py-2 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
           AI Chat Assistant
         </div>
       </motion.button>
@@ -222,7 +233,7 @@ const AIAssistant = ({ autoOpen = false }: AIAssistantProps) => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed bottom-[140px] right-8 z-[10000] w-96 max-w-[calc(100vw-4rem)] h-[500px] max-h-[calc(100vh-10rem)]"
+            className="fixed bottom-[260px] sm:bottom-[280px] right-4 sm:right-8 z-[10000] w-[calc(100vw-2rem)] sm:w-96 max-w-[calc(100vw-2rem)] h-[calc(100vh-18rem)] sm:h-[500px] max-h-[calc(100vh-20rem)]"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}

@@ -398,29 +398,29 @@ const UnifiedAudioPlayer = ({
 
       {/* Main Player Card */}
       <motion.div
-        className="bg-gradient-to-br from-[var(--surface)]/80 to-[var(--surface-alt)]/60 backdrop-blur-xl rounded-3xl p-8 border border-[var(--primary)]/20 shadow-2xl"
+        className="bg-gradient-to-br from-[var(--surface)]/80 to-[var(--surface-alt)]/60 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-[var(--primary)]/20 shadow-2xl"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >
         {/* Track Info Header */}
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex flex-col sm:flex-row items-start justify-between mb-4 sm:mb-6 gap-3">
           <div className="flex-1">
             <motion.h2
               key={currentTrack.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="text-3xl font-bold text-[var(--foreground)] mb-2"
+              className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--foreground)] mb-2"
             >
               {currentTrack.name}
             </motion.h2>
-            <div className="flex items-center gap-3 text-sm text-[var(--foreground)]/70">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-[var(--foreground)]/70">
               {currentTrack.frequency && (
-                <span className="px-3 py-1 bg-gradient-to-r from-[var(--wave)]/20 to-[var(--accent)]/20 rounded-full border border-[var(--wave)]/30">
+                <span className="px-2 sm:px-3 py-1 bg-gradient-to-r from-[var(--wave)]/20 to-[var(--accent)]/20 rounded-full border border-[var(--wave)]/30 whitespace-nowrap">
                   {currentTrack.frequency}
                 </span>
               )}
-              <span>{formatTime(currentTrack.duration)}</span>
-              <span className={`px-3 py-1 bg-gradient-to-r ${categoryColors[currentTrack.category]}/20 rounded-full capitalize`}>
+              <span className="whitespace-nowrap">{formatTime(currentTrack.duration)}</span>
+              <span className={`px-2 sm:px-3 py-1 bg-gradient-to-r ${categoryColors[currentTrack.category]}/20 rounded-full capitalize whitespace-nowrap`}>
                 {currentTrack.category}
               </span>
             </div>
@@ -429,10 +429,11 @@ const UnifiedAudioPlayer = ({
           <div className="flex gap-2">
             <motion.button
               onClick={() => setShowPlaylist(!showPlaylist)}
-              className="p-3 bg-[var(--surface-alt)] rounded-full hover:bg-[var(--primary)]/20 transition-colors"
+              className="p-2 sm:p-3 bg-[var(--surface-alt)] rounded-full hover:bg-[var(--primary)]/20 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               title="Toggle playlist"
+              aria-label="Toggle playlist"
             >
               <List className="w-5 h-5" />
             </motion.button>
@@ -440,7 +441,7 @@ const UnifiedAudioPlayer = ({
         </div>
 
         {/* Visualizer */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <AudioVisualizer
             audioEngine={audioEngineRef.current}
             isPlaying={isPlaying}
@@ -449,8 +450,8 @@ const UnifiedAudioPlayer = ({
         </div>
 
         {/* Progress Bar */}
-        <div className="mb-6">
-          <div className="h-2 bg-[var(--background)]/50 rounded-full cursor-pointer relative overflow-hidden">
+        <div className="mb-4 sm:mb-6">
+          <div className="h-2 sm:h-2.5 bg-[var(--background)]/50 rounded-full cursor-pointer relative overflow-hidden touch-manipulation">
             <motion.div
               className={`h-full bg-gradient-to-r ${categoryColors[currentTrack.category]} rounded-full`}
               style={{ width: `${progress}%` }}
@@ -463,71 +464,80 @@ const UnifiedAudioPlayer = ({
         </div>
 
         {/* Main Controls */}
-        <div className="flex items-center justify-center gap-4 mb-6">
+        <div className="flex items-center justify-center gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 flex-wrap">
           <motion.button
             onClick={previousTrack}
-            className="p-3 text-[var(--foreground)]/60 hover:text-[var(--primary)] transition-colors"
+            className="p-2 sm:p-3 text-[var(--foreground)]/60 hover:text-[var(--primary)] transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             title="Previous track"
+            aria-label="Previous track"
           >
-            <SkipBack className="w-6 h-6" />
+            <SkipBack className="w-5 h-5 sm:w-6 sm:h-6" />
           </motion.button>
 
           <motion.button
             onClick={stopPlayback}
             disabled={!isPlaying}
-            className="p-3 text-[var(--foreground)]/60 hover:text-[var(--primary)] transition-colors disabled:opacity-30"
+            className="p-2 sm:p-3 text-[var(--foreground)]/60 hover:text-[var(--primary)] transition-colors disabled:opacity-30 touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             title="Stop"
+            aria-label="Stop playback"
           >
-            <Square className="w-6 h-6" />
+            <Square className="w-5 h-5 sm:w-6 sm:h-6" />
           </motion.button>
 
           <motion.button
             onClick={togglePlay}
             disabled={isLoading}
-            className="p-5 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full shadow-lg disabled:opacity-50"
+            className="p-4 sm:p-5 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white rounded-full shadow-lg disabled:opacity-50 touch-manipulation min-w-[60px] min-h-[60px] sm:min-w-[68px] sm:min-h-[68px] flex items-center justify-center"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             title={isPlaying ? 'Pause' : 'Play'}
+            aria-label={isPlaying ? 'Pause' : 'Play'}
           >
             {isLoading ? (
-              <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : isPlaying ? (
-              <Pause className="w-8 h-8" fill="currentColor" />
+              <Pause className="w-7 h-7 sm:w-8 sm:h-8" fill="currentColor" />
             ) : (
-              <Play className="w-8 h-8" fill="currentColor" />
+              <Play className="w-7 h-7 sm:w-8 sm:h-8" fill="currentColor" />
             )}
           </motion.button>
 
           <motion.button
             onClick={nextTrack}
-            className="p-3 text-[var(--foreground)]/60 hover:text-[var(--primary)] transition-colors"
+            className="p-2 sm:p-3 text-[var(--foreground)]/60 hover:text-[var(--primary)] transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             title="Next track"
+            aria-label="Next track"
           >
-            <SkipForward className="w-6 h-6" />
+            <SkipForward className="w-5 h-5 sm:w-6 sm:h-6" />
           </motion.button>
 
           <motion.button
             onClick={() => setLoopEnabled(!loopEnabled)}
-            className={`p-3 transition-colors ${
+            className={`p-2 sm:p-3 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center ${
               loopEnabled ? 'text-[var(--primary)]' : 'text-[var(--foreground)]/60 hover:text-[var(--primary)]'
             }`}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             title="Toggle loop"
+            aria-label="Toggle loop"
           >
-            <Repeat className="w-6 h-6" />
+            <Repeat className="w-5 h-5 sm:w-6 sm:h-6" />
           </motion.button>
         </div>
 
         {/* Volume Control */}
-        <div className="flex items-center gap-4">
-          <button onClick={toggleMute} className="text-[var(--foreground)]/60 hover:text-[var(--primary)]">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <button 
+            onClick={toggleMute} 
+            className="text-[var(--foreground)]/60 hover:text-[var(--primary)] touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center p-2"
+            aria-label={isMuted ? "Unmute" : "Mute"}
+          >
             {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
           </button>
           <input
@@ -536,17 +546,18 @@ const UnifiedAudioPlayer = ({
             max="100"
             value={volume}
             onChange={(e) => handleVolumeChange(parseInt(e.target.value))}
-            className="flex-1 accent-[var(--primary)]"
+            className="flex-1 accent-[var(--primary)] h-8 touch-manipulation"
+            aria-label="Volume control"
           />
-          <span className="text-sm text-[var(--foreground)]/60 w-12 text-right">{volume}%</span>
+          <span className="text-xs sm:text-sm text-[var(--foreground)]/60 w-10 sm:w-12 text-right">{volume}%</span>
         </div>
 
         {/* Track Benefits */}
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-4 sm:mt-6 flex flex-wrap gap-1.5 sm:gap-2">
           {currentTrack.benefits.map((benefit) => (
             <span
               key={benefit}
-              className="px-3 py-1 bg-[var(--surface-alt)]/50 border border-[var(--primary)]/20 rounded-full text-xs text-[var(--foreground)]/70"
+              className="px-2 sm:px-3 py-1 bg-[var(--surface-alt)]/50 border border-[var(--primary)]/20 rounded-full text-xs text-[var(--foreground)]/70"
             >
               {benefit}
             </span>
@@ -561,31 +572,31 @@ const UnifiedAudioPlayer = ({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-gradient-to-br from-[var(--surface)]/80 to-[var(--surface-alt)]/60 backdrop-blur-xl rounded-2xl border border-[var(--primary)]/20 overflow-hidden"
+            className="bg-gradient-to-br from-[var(--surface)]/80 to-[var(--surface-alt)]/60 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-[var(--primary)]/20 overflow-hidden"
           >
-            <div className="p-6">
-              <h3 className="text-xl font-bold text-[var(--foreground)] mb-4">Full Playlist</h3>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="p-4 sm:p-6">
+              <h3 className="text-lg sm:text-xl font-bold text-[var(--foreground)] mb-3 sm:mb-4">Full Playlist</h3>
+              <div className="space-y-2 max-h-80 sm:max-h-96 overflow-y-auto">
                 {audioTracks.map((track, index) => (
                   <motion.div
                     key={track.id}
                     onClick={() => changeTrack(index)}
-                    className={`p-4 rounded-xl cursor-pointer transition-all ${
+                    className={`p-3 sm:p-4 rounded-lg sm:rounded-xl cursor-pointer transition-all touch-manipulation ${
                       index === currentTrackIndex
                         ? `bg-gradient-to-r ${categoryColors[track.category]}/20 border border-[var(--primary)]/30`
-                        : 'bg-[var(--background)]/30 hover:bg-[var(--background)]/50'
+                        : 'bg-[var(--background)]/30 active:bg-[var(--background)]/50'
                     }`}
                     whileHover={{ x: 4 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium text-[var(--foreground)]">{track.name}</div>
-                        <div className="text-sm text-[var(--foreground)]/60">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-[var(--foreground)] text-sm sm:text-base truncate">{track.name}</div>
+                        <div className="text-xs sm:text-sm text-[var(--foreground)]/60">
                           {track.frequency} • {formatTime(track.duration)}
                         </div>
                       </div>
-                      <span className={`px-3 py-1 bg-gradient-to-r ${categoryColors[track.category]}/30 rounded-full text-xs capitalize`}>
+                      <span className={`px-2 sm:px-3 py-1 bg-gradient-to-r ${categoryColors[track.category]}/30 rounded-full text-xs capitalize whitespace-nowrap shrink-0`}>
                         {track.category}
                       </span>
                     </div>

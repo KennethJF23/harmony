@@ -312,28 +312,29 @@ export default function NeuroscientistDashboard() {
     <div className="min-h-screen bg-gradient-to-br from-[#0a0e1a] via-[#1a1f35] to-[#0a0e1a]">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#1a1f35]/95 backdrop-blur-xl border-b border-[#5b9eff]/30 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="flex items-center justify-between h-12 sm:h-14">
             <Link href="/dashboard/neuroscientist">
               <div className="flex items-center space-x-2.5 cursor-pointer">
-                <div className="w-8 h-8 bg-gradient-to-br from-[#5b9eff] to-[#7c3aed] rounded-lg flex items-center justify-center">
-                  <Brain className="w-5 h-5 text-white" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-[#5b9eff] to-[#7c3aed] rounded-lg flex items-center justify-center">
+                  <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-[#5b9eff] to-[#7c3aed] bg-clip-text text-transparent">
-                  Harmony Research
+                <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-[#5b9eff] to-[#7c3aed] bg-clip-text text-transparent">
+                  <span className="hidden sm:inline">Harmony Research</span>
+                  <span className="sm:hidden">Harmony</span>
                 </span>
               </div>
             </Link>
 
-            <div className="hidden md:flex items-center space-x-1">
+            <div className="hidden md:flex items-center space-x-2">
               <Link href="/dashboard/neuroscientist">
                 <motion.div
-                  className="px-4 py-2 rounded-lg flex items-center gap-2 bg-gradient-to-r from-[#5b9eff]/20 to-[#7c3aed]/20 text-[#5b9eff]"
-                  whileHover={{ scale: 1.05 }}
+                  className="px-3 py-2 rounded-lg flex items-center gap-2 bg-gradient-to-r from-[#5b9eff]/20 to-[#7c3aed]/20 text-[#5b9eff]"
+                  whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <Home className="w-4 h-4" />
-                  <span className="font-medium">Dashboard</span>
+                  <span className="font-medium text-sm">Dashboard</span>
                 </motion.div>
               </Link>
             </div>
@@ -344,12 +345,12 @@ export default function NeuroscientistDashboard() {
               </span>
               <motion.button
                 onClick={handleLogout}
-                className="p-2 text-[#a9b1d6] hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                className="p-1.5 text-[#a9b1d6] hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 title="Logout"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
               </motion.button>
             </div>
           </div>
@@ -357,26 +358,26 @@ export default function NeuroscientistDashboard() {
       </nav>
 
       {/* Main Content */}
-      <main className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <main className="pt-20 sm:pt-24 pb-12 sm:pb-16 px-3 sm:px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
-          className="mb-8 flex items-center justify-between"
+          className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">
               Research Dashboard
             </h1>
-            <p className="text-[#7aa2f7]">Neural frequency analytics and user insights</p>
+            <p className="text-sm sm:text-base text-[#7aa2f7]">Neural frequency analytics and user insights</p>
           </div>
           
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             <select
               value={selectedTimeRange}
               onChange={(e) => setSelectedTimeRange(e.target.value)}
-              className="px-4 py-2 bg-[#1e2642] border border-[#5b9eff]/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#5b9eff]/50"
+              className="px-3 sm:px-4 py-2 bg-[#1e2642] border border-[#5b9eff]/30 rounded-lg text-white text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#5b9eff]/50 min-w-[120px]"
             >
               <option value="24h">Last 24 Hours</option>
               <option value="7d">Last 7 Days</option>
@@ -387,22 +388,24 @@ export default function NeuroscientistDashboard() {
             <motion.button
               onClick={handleGenerateNeuroscienceReport}
               disabled={isGenerating}
-              className="px-4 py-2 bg-gradient-to-r from-[#7c3aed]/20 to-[#5b9eff]/20 hover:from-[#7c3aed]/30 hover:to-[#5b9eff]/30 text-[#7c3aed] rounded-lg text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-[#7c3aed]/30"
+              className="px-3 sm:px-4 py-2 bg-gradient-to-r from-[#7c3aed]/20 to-[#5b9eff]/20 hover:from-[#7c3aed]/30 hover:to-[#5b9eff]/30 text-[#7c3aed] rounded-lg text-xs sm:text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-[#7c3aed]/30 whitespace-nowrap"
               whileHover={{ scale: isGenerating ? 1 : 1.02 }}
               whileTap={{ scale: isGenerating ? 1 : 0.98 }}
             >
-              <FileText className="w-4 h-4" />
-              {isGenerating ? 'Generating PDF...' : 'Generate AI Report'}
+              <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">{isGenerating ? 'Generating PDF...' : 'Generate AI Report'}</span>
+              <span className="sm:hidden">{isGenerating ? 'PDF...' : 'AI Report'}</span>
             </motion.button>
             
             <motion.button
               onClick={handleExportData}
-              className="px-4 py-2 bg-[#5b9eff]/20 hover:bg-[#5b9eff]/30 text-[#5b9eff] rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+              className="px-3 sm:px-4 py-2 bg-[#5b9eff]/20 hover:bg-[#5b9eff]/30 text-[#5b9eff] rounded-lg text-xs sm:text-sm font-medium flex items-center gap-2 transition-colors whitespace-nowrap"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Download className="w-4 h-4" />
-              Export Data
+              <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Export Data</span>
+              <span className="sm:hidden">Export</span>
             </motion.button>
           </div>
         </motion.div>

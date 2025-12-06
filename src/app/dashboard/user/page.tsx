@@ -244,6 +244,7 @@ export default function UserDashboard() {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-[#0a0e1a] via-[#1a1f35] to-[#0a0e1a]">
       {/* Dashboard Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#1a1f35]/95 backdrop-blur-xl border-b border-[#5b9eff]/30 shadow-lg">
@@ -636,7 +637,10 @@ export default function UserDashboard() {
       </main>
 
       <Footer />
-      <AIAssistant />
     </div>
+    
+    {/* Floating components rendered outside main container */}
+    <AIAssistant />
+    </>
   );
 }

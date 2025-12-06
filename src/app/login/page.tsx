@@ -155,7 +155,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setUserType('user')}
-                className={`flex-1 py-3 rounded-xl font-medium transition-all duration-300 ${
+                className={`flex-1 py-3 px-2 rounded-xl font-medium transition-all duration-300 text-sm sm:text-base flex items-center justify-center ${
                   userType === 'user'
                     ? 'bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] text-white shadow-lg'
                     : 'text-[var(--foreground)]/60 hover:text-[var(--foreground)]'
@@ -166,7 +166,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setUserType('neuroscientist')}
-                className={`flex-1 py-3 rounded-xl font-medium transition-all duration-300 ${
+                className={`flex-1 py-3 px-2 rounded-xl font-medium transition-all duration-300 text-sm sm:text-base flex items-center justify-center ${
                   userType === 'neuroscientist'
                     ? 'bg-gradient-to-r from-[var(--wave)] to-[var(--accent)] text-white shadow-lg'
                     : 'text-[var(--foreground)]/60 hover:text-[var(--foreground)]'
