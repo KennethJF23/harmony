@@ -92,15 +92,25 @@ export async function POST(request: NextRequest) {
     const { db } = await connectToDatabase();
     const usersCollection = db.collection('users');
 
-    // Find user by email and role
-    const user = await usersCollection.findOne({ email, role });
+    // First, find user by email only to check their actual role
+    const userByEmail = await usersCollection.findOne({ email });
     
-    if (!user) {
+    if (!userByEmail) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
       );
     }
+
+    // Check if the role matches the registered role
+    if (userByEmail.role !== role) {
+      return NextResponse.json(
+        { error: `This account is registered as a ${userByEmail.role}. Please select the correct account type.` },
+        { status: 401 }
+      );
+    }
+
+    const user = userByEmail;
 
     // Check if user has a password (some users created in dev mode might not)
     if (!user.password) {
