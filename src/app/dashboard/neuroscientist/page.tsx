@@ -316,9 +316,7 @@ export default function NeuroscientistDashboard() {
           <div className="flex items-center justify-between h-12 sm:h-14">
             <Link href="/dashboard/neuroscientist">
               <div className="flex items-center space-x-2.5 cursor-pointer">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-[#5b9eff] to-[#7c3aed] rounded-lg flex items-center justify-center">
-                  <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                </div>
+                <img src="/braihharmonicslogo.jpg" alt="Brain Harmonics" className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-cover" />
                 <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-[#5b9eff] to-[#7c3aed] bg-clip-text text-transparent">
                   <span className="hidden sm:inline">Harmony Research</span>
                   <span className="sm:hidden">Harmony</span>

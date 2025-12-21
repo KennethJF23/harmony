@@ -50,13 +50,14 @@ const LoadingScreen = () => {
           transition={{ duration: 0.5, ease: 'backOut' }}
         >
           <motion.div
-            className="w-20 h-20 bg-gradient-to-r from-[#5b9eff] to-[#a78bfa] rounded-full flex items-center justify-center"
+            className="w-20 h-20 rounded-full flex items-center justify-center"
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
           >
-            <div className="w-14 h-14 bg-[#0a0e1a] rounded-full flex items-center justify-center">
+            <img src="/braihharmonicslogo.jpg" alt="Brain Harmonics" className="w-20 h-20 rounded-full object-cover" />
+            <div className="w-14 h-14 bg-transparent rounded-full flex items-center justify-center">
               <motion.div
-                className="w-8 h-8 bg-gradient-to-r from-[#2dd4bf] to-[#34d399] rounded-full"
+                className="w-0 h-0"
                 animate={{ scale: [1, 1.3, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               />

@@ -253,9 +253,7 @@ export default function UserDashboard() {
             {/* Logo */}
             <Link href="/dashboard/user">
               <div className="flex items-center space-x-2.5 cursor-pointer">
-                <div className="w-8 h-8 bg-gradient-to-br from-[#5b9eff] to-[#7c3aed] rounded-lg flex items-center justify-center">
-                  <div className="w-4 h-4 bg-white/90 rounded-sm" />
-                </div>
+                <img src="/braihharmonicslogo.jpg" alt="Brain Harmonics" className="w-8 h-8 rounded-lg object-cover" />
                 <span className="text-xl font-bold bg-gradient-to-r from-[#5b9eff] to-[#7c3aed] bg-clip-text text-transparent">
                   Harmony
                 </span>

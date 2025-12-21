@@ -53,9 +53,7 @@ const Navbar = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-[#5b9eff] to-[#7c3aed] rounded-lg flex items-center justify-center">
-                <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 bg-white/90 rounded-sm" />
-              </div>
+              <img src="/braihharmonicslogo.jpg" alt="Brain Harmonics" className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg object-cover" />
               <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-[#5b9eff] to-[#7c3aed] bg-clip-text text-transparent">
                 Harmony
               </span>
